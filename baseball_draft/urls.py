@@ -21,8 +21,8 @@ from league import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')),  # Default auth URLs
     path('accounts/login/', auth_views.LoginView.as_view(template_name='league/login.html'), name='login'),
+    path('accounts/', include('django.contrib.auth.urls')),  # Default auth URLs
     path('', views.dashboard, name='dashboard'),
     path('pick/<int:player_id>/', views.make_pick, name='make_pick'),
     path('add-player/', views.add_player, name='add_player'),
