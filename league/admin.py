@@ -2,20 +2,18 @@
 from django.contrib import admin
 from .models import Team, Player, DraftPick
 
-# Customize the admin site
-admin.site.site_title = "Web3Sports Draft"  # Browser tab title
-admin.site.site_header = "Web3Sports Draft Admin"  # Header on the admin page
-admin.site.index_title = "Welcome Web3Sports Draft Admin"  # Title on the admin index page
+admin.site.site_title = "Baseball League Admin"
+admin.site.site_header = "Baseball League Admin"
+admin.site.index_title = "Welcome to Baseball League Admin"
 
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
     filter_horizontal = ('coaches',)
 
-
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'age', 'position', 'rating', 'team', 'user')
+    list_display = ('name', 'age', 'position', 'rating', 'team', 'user', 'description', 'coach_comments')
     list_filter = ('team',)
-    search_fields = ('name',)
+    search_fields = ('name', 'description', 'coach_comments')
 
 admin.site.register(DraftPick)
