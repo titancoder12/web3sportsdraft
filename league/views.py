@@ -33,10 +33,11 @@ def dashboard(request, division_id=None):
     }
     return render(request, 'league/dashboard.html', context)
 
+# league/views.py
 @login_required
 def make_pick(request, player_id, division_id):
     if request.method == 'POST':
-        player = get_object_or_404(Player, id=player_id, division_id=division_id)  # Ensure player is in division
+        player = get_object_or_404(Player, id=player_id, division_id=division_id)
         division = get_object_or_404(Division, id=division_id)
         try:
             team = Team.objects.filter(coaches=request.user, division=division).first()
@@ -56,7 +57,7 @@ def make_pick(request, player_id, division_id):
                 player.save()
         except Team.DoesNotExist:
             pass
-    return redirect('dashboard', division_id=division_id)
+    return redirect('dashboard_with_division', division_id=division_id)  # Fix redirect name
 
 @login_required
 def add_player(request, division_id=None):  # Updated to accept division_id

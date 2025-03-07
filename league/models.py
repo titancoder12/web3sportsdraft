@@ -35,7 +35,7 @@ class Player(models.Model):
     draft_round = models.IntegerField(null=True, blank=True)
     description = models.TextField(blank=True)
     coach_comments = models.TextField(blank=True)
-    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='players')  # Scope players to division
+    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='players', null=True)  # Scope players to division
 
     def __str__(self):
         return f"{self.name} ({self.division})"
