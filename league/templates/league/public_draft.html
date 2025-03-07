@@ -1,0 +1,39 @@
+<!-- league/templates/league/public_draft.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Draft - Baseball Draft</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta http-equiv="refresh" content="30"> <!-- Auto-refresh every 30 seconds -->
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Live Draft Results</h1>
+        <table class="table table-bordered mt-3">
+            <thead>
+                <tr>
+                    <th>Round</th>
+                    <th>Pick</th>
+                    <th>Team</th>
+                    <th>Player</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pick in draft_picks %}
+                    <tr>
+                        <td>{{ pick.round_number }}</td>
+                        <td>{{ pick.pick_number }}</td>
+                        <td>{{ pick.team.name }}</td>
+                        <td>{{ pick.player.name }}</td> 
+                    </tr>
+                {% endfor %}
+                {% if not draft_picks %}
+                    <tr>
+                        <td colspan="4" class="text-center">No players have been drafted yet.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
