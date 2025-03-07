@@ -1,16 +1,14 @@
 # league/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .models import Team, Player, DraftPick
-from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm
+from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm
 
 @login_required
 def dashboard(request):
     if hasattr(request.user, 'player_profile'):
-        # Redirect players to their profile
         return redirect('player_profile')
-    
     teams = Team.objects.all()
     available_players = Player.objects.filter(team__isnull=True)
     draft_picks = DraftPick.objects.all()
@@ -31,7 +29,6 @@ def make_pick(request, player_id):
                 last_pick = DraftPick.objects.order_by('-pick_number').first()
                 pick_number = last_pick.pick_number + 1 if last_pick else 1
                 round_number = (pick_number - 1) // Team.objects.count() + 1
-                
                 DraftPick.objects.create(
                     team=team,
                     player=player,
@@ -56,7 +53,6 @@ def add_player(request):
         form = PlayerForm()
     return render(request, 'league/add_player.html', {'form': form})
 
-# league/views.py (relevant section)
 @login_required
 def player_profile(request):
     try:
@@ -83,8 +79,29 @@ def signup(request):
         form = PlayerSignupForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)  # Automatically log in the new user
-            return redirect('player_profile')  # Redirect to their profile
+            login(request, user)
+            return redirect('player_profile')
     else:
         form = PlayerSignupForm()
     return render(request, 'league/signup.html', {'form': form})
+
+@login_required
+def coach_comment(request, player_id):
+    player = get_object_or_404(Player, id=player_id)
+    # Check if the user is a coach
+    if not Team.objects.filter(coaches=request.user).exists():
+        return render(request, 'league/no_permission.html')  # Permission denied
+    
+    if request.method == 'POST':
+        form = CoachCommentForm(request.POST, instance=player)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')  # Or wherever you want to redirect
+    else:
+        form = CoachCommentForm(instance=player)
+    
+    context = {
+        'form': form,
+        'player': player,
+    }
+    return render(request, 'league/coach_comment.html', context)
