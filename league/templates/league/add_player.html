@@ -12,9 +12,11 @@
     <div class="container mt-5">
       <h1>Add New Player</h1>
       <form method="post" class="w-50">
-        {% csrf_token %} {{ form.as_p }}
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="hidden" name="division_id" value="{{ division_id }}">
         <button type="submit" class="btn btn-primary">Add Player</button>
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back</a>
+        <a href="{% url 'dashboard_with_division' division_id|default:0 %}" class="btn btn-secondary">Back to Dashboard</a>
       </form>
     </div>
   </body>
