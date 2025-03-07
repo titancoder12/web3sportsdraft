@@ -33,7 +33,7 @@
                         <td>{{ pick.round_number }}</td>
                         <td>{{ pick.pick_number }}</td>
                         <td>{{ pick.team.name }}</td>
-                        <td>{{ pick.player.name }}</td>
+                        <td>{{ pick.player.first_name }} {{ pick.player.last_name }}</td>
                     </tr>
                 {% endfor %}
                 {% if not draft_picks %}

@@ -2,13 +2,12 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Player
+from .models import Player, Division
 
-# league/forms.py
 class PlayerForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['first_name','last_name', 'age', 'position', 'rating', 'division']
+        fields = ['first_name', 'last_name', 'age', 'position', 'rating', 'division']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
@@ -23,12 +22,12 @@ class PlayerForm(forms.ModelForm):
         self.fields['age'].required = False
         self.fields['position'].required = False
         self.fields['rating'].required = False
-        self.fields['division'].required = True  # Ensure division is set
+        self.fields['division'].required = True
 
 class PlayerProfileForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['first_name','last_name', 'age', 'position', 'description']  # No coach_comments
+        fields = ['first_name', 'last_name', 'age', 'position', 'description']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
@@ -52,12 +51,12 @@ class CoachCommentForm(forms.ModelForm):
         }
 
 class PlayerSignupForm(UserCreationForm):
-    first_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
-    last_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
+    first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
+    last_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
 
     class Meta:
         model = User
-        fields = ['username', 'first_name','last_name', 'password1', 'password2']
+        fields = ['username', 'first_name', 'last_name', 'password1', 'password2']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
         }
@@ -69,6 +68,7 @@ class PlayerSignupForm(UserCreationForm):
             Player.objects.create(
                 user=user,
                 first_name=self.cleaned_data['first_name'],
-                last_name=self.cleaned_data['last_name']
+                last_name=self.cleaned_data['last_name'],
+                division=Division.objects.first()  # Default division; adjust as needed
             )
         return user

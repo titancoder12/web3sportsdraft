@@ -7,7 +7,7 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Comment on {{ player.name }}</h1>
+        <h1>Comment on {{ player.first_name }} {{ player.last_name }}</h1>
         <form method="post" class="w-50">
             {% csrf_token %}
             {{ form.as_p }}

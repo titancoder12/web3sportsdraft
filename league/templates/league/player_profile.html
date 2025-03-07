@@ -15,7 +15,7 @@
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="btn btn-primary">Update Profile</button>
-            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+            <a href="{% url 'dashboard_with_division' player.division.id %}" class="btn btn-secondary">Back to Dashboard</a>
         </form>
         <form method="post" action="{% url 'logout' %}" style="display: inline;">
             {% csrf_token %}

@@ -40,47 +40,68 @@
                 </table>
             </div>
 
+
+
             <div class="col-md-6">
-                <h2>Available Players</h2>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Name</th><th>Age</th><th>Position</th><th>Rating</th>
-                            {% if is_coach %}<th>Description</th><th>Coach Comments</th>{% endif %}
-                            <th>Action</th><th>Comment</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for player in players %}
-                            <tr>
-                                <td>{{ player.name }}</td>
-                                <td>{{ player.age|default:"" }}</td>
-                                <td>{{ player.position|default:"" }}</td>
-                                <td>{{ player.rating }}</td>
-                                {% if is_coach %}
-                                    <td>{{ player.description|default:"No description" }}</td>
-                                    <td>{{ player.coach_comments|default:"No comments" }}</td>
-                                {% endif %}
-                                <td>
-                                    {% if request.user.teams.exists %}
-                                        <form method="post" action="{% url 'make_pick' player.id division.id %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-primary btn-sm">Draft</button>
-                                        </form>
-                                    {% else %}
-                                        <span>Not a coach</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if request.user.teams.exists %}
-                                        <a href="{% url 'coach_comment' player.id division.id %}" class="btn btn-info btn-sm">Add Comment</a>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+              <h2>Available Players</h2>
+              <table class="table table-bordered">
+                  <thead>
+                      <tr>
+                          <th>First Name</th><th>Last Name</th><th>Age</th><th>Position</th><th>Rating</th>
+                          {% if is_coach %}<th>Description</th><th>Coach Comments</th>{% endif %}
+                          <th>Action</th><th>Comment</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {% for player in players %}
+                          <tr>
+                              <td>{{ player.first_name }}</td>
+                              <td>{{ player.last_name }}</td>
+                              <td>{{ player.age|default:"" }}</td>
+                              <td>{{ player.position|default:"" }}</td>
+                              <td>{{ player.rating }}</td>
+                              {% if is_coach %}
+                                  <td>{{ player.description|default:"No description" }}</td>
+                                  <td>{{ player.coach_comments|default:"No comments" }}</td>
+                              {% endif %}
+                              <td>
+                                  {% if request.user.teams.exists %}
+                                      <form method="post" action="{% url 'make_pick' player.id division.id %}">
+                                          {% csrf_token %}
+                                          <button type="submit" class="btn btn-primary btn-sm">Draft</button>
+                                      </form>
+                                  {% else %}
+                                      <span>Not a coach</span>
+                                  {% endif %}
+                              </td>
+                              <td>
+                                  {% if request.user.teams.exists %}
+                                      <a href="{% url 'coach_comment' player.id division.id %}" class="btn btn-info btn-sm">Add Comment</a>
+                                  {% endif %}
+                              </td>
+                          </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
+          </div>
+          
+          <div class="col-md-4">
+              <h2>Draft History</h2>
+              <table class="table table-bordered">
+                  <thead><tr><th>Round</th><th>Pick</th><th>Team</th><th>Player</th></tr></thead>
+                  <tbody>
+                      {% for pick in draft_picks %}
+                          <tr>
+                              <td>{{ pick.round_number }}</td>
+                              <td>{{ pick.pick_number }}</td>
+                              <td>{{ pick.team.name }}</td>
+                              <td>{{ pick.player.first_name }} {{ pick.player.last_name }}</td>
+                          </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
+          </div>
+
 
             <div class="col-md-4">
                 <h2>Draft History</h2>

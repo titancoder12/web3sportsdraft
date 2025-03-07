@@ -94,6 +94,7 @@ def player_profile(request):
     }
     return render(request, 'league/player_profile.html', context)
 
+# league/views.py (relevant section)
 def signup(request):
     if request.method == 'POST':
         form = PlayerSignupForm(request.POST)
