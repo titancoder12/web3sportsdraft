@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from .models import Team, Player, DraftPick
+from .models import Team, Player, DraftPick, Division
 from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm
 
 @login_required
@@ -125,9 +125,17 @@ def coach_comment(request, player_id, division_id):
     }
     return render(request, 'league/coach_comment.html', context)
 
-def public_draft(request):
-    draft_picks = DraftPick.objects.all()
+def public_draft(request, division_id=None):
+    if division_id:
+        division = get_object_or_404(Division, id=division_id)
+        draft_picks = DraftPick.objects.filter(division=division)
+    else:
+        draft_picks = DraftPick.objects.all()  # Show all if no division specified
+        division = None
+    
     context = {
+        'division': division,
         'draft_picks': draft_picks,
+        'divisions': Division.objects.all(),  # For navigation
     }
     return render(request, 'league/public_draft.html', context)
