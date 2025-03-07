@@ -4,15 +4,17 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Player
 
+# league/forms.py
 class PlayerForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['name', 'age', 'position', 'rating']
+        fields = ['name', 'age', 'position', 'rating', 'division']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'age': forms.NumberInput(attrs={'class': 'form-control', 'min': 5, 'max': 18}),
             'position': forms.TextInput(attrs={'class': 'form-control'}),
             'rating': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100}),
+            'division': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -20,6 +22,7 @@ class PlayerForm(forms.ModelForm):
         self.fields['age'].required = False
         self.fields['position'].required = False
         self.fields['rating'].required = False
+        self.fields['division'].required = True  # Ensure division is set
 
 class PlayerProfileForm(forms.ModelForm):
     class Meta:
