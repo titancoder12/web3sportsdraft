@@ -1,11 +1,16 @@
 # league/views.py
 from django.shortcuts import render, redirect
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .models import Team, Player, DraftPick
-from .forms import PlayerForm, PlayerProfileForm
+from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm
 
 @login_required
 def dashboard(request):
+    if hasattr(request.user, 'player_profile'):
+        # Redirect players to their profile
+        return redirect('player_profile')
+    
     teams = Team.objects.all()
     available_players = Player.objects.filter(team__isnull=True)
     draft_picks = DraftPick.objects.all()
@@ -54,10 +59,10 @@ def add_player(request):
 @login_required
 def player_profile(request):
     try:
-        player = request.user.player_profile  # Get the logged-in user's Player instance
+        player = request.user.player_profile
     except Player.DoesNotExist:
-        return render(request, 'league/no_profile.html')  # Handle if no Player is linked
-
+        return render(request, 'league/no_profile.html')
+    
     if request.method == 'POST':
         form = PlayerProfileForm(request.POST, instance=player)
         if form.is_valid():
@@ -71,3 +76,14 @@ def player_profile(request):
         'player': player,
     }
     return render(request, 'league/player_profile.html', context)
+
+def signup(request):
+    if request.method == 'POST':
+        form = PlayerSignupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # Automatically log in the new user
+            return redirect('player_profile')  # Redirect to their profile
+    else:
+        form = PlayerSignupForm()
+    return render(request, 'league/signup.html', {'form': form})
