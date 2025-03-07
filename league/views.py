@@ -56,6 +56,7 @@ def add_player(request):
         form = PlayerForm()
     return render(request, 'league/add_player.html', {'form': form})
 
+# league/views.py (relevant section)
 @login_required
 def player_profile(request):
     try:
