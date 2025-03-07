@@ -18,7 +18,7 @@ class Division(models.Model):
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
-    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='teams', null=True)
+    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='teams')
     coaches = models.ManyToManyField(User, related_name='teams')
     max_players = models.IntegerField(default=12)
 
@@ -35,13 +35,13 @@ class Player(models.Model):
     draft_round = models.IntegerField(null=True, blank=True)
     description = models.TextField(blank=True)
     coach_comments = models.TextField(blank=True)
-    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='players',null=True)  # Scope players to division
+    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='players')  # Scope players to division
 
     def __str__(self):
         return f"{self.name} ({self.division})"
 
 class DraftPick(models.Model):
-    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='draft_picks', null=True)
+    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='draft_picks')
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     pick_number = models.IntegerField()

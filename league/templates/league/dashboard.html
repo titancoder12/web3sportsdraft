@@ -15,7 +15,7 @@
                     </option>
                 {% endfor %}
             </select>
-            <a href="{% url 'add_player' %}" class="btn btn-success">Add New Player</a>
+            <a href="{% url 'add_player_with_division' division.id %}" class="btn btn-success">Add New Player</a>
             <a href="{% url 'player_profile' %}" class="btn btn-info">My Profile</a>
             <form method="post" action="{% url 'logout' %}" style="display: inline;">
                 {% csrf_token %}
