@@ -17,7 +17,14 @@
             <button type="submit" class="btn btn-primary w-100">Login</button>
             <input type="hidden" name="next" value="{{ next }}" />
         </form>
-        <p class="text-center mt-3">Need an account? <a href="{% url 'signup' %}">Sign up</a></p>
+
+        <!-- league/templates/league/login.html -->
+        <p class="text-center mt-3">
+          Need an account? <a href="{% url 'signup' %}">Sign up</a> |
+          <a href="{% url 'public_draft' %}">View Live Draft</a>
+        </p>
+
+
     </div>
 </body>
 </html>

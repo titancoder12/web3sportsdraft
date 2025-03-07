@@ -16,7 +16,12 @@
             {{ form.as_p }}
             <button type="submit" class="btn btn-primary w-100">Sign Up</button>
         </form>
-        <p class="text-center mt-3">Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+
+        <!-- league/templates/league/signup.html -->
+        <p class="text-center mt-3">
+            Already have an account? <a href="{% url 'login' %}">Log in</a> |
+            <a href="{% url 'public_draft' %}">View Live Draft</a>
+        </p>
     </div>
 </body>
 </html>
