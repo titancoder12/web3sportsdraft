@@ -27,6 +27,7 @@ class Team(models.Model):
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='player_profile')
+    name = models.CharField(max_length=100)
     first_name = models.CharField(max_length=50)  # New field
     last_name = models.CharField(max_length=50)   # New field
     age = models.IntegerField(null=True, blank=True)
