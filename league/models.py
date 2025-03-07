@@ -11,13 +11,14 @@ class Team(models.Model):
         return self.name
 
 class Player(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='player_profile')  # Link to User
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='player_profile')
     name = models.CharField(max_length=100)
     age = models.IntegerField(null=True, blank=True)
     position = models.CharField(max_length=50, blank=True)
-    rating = models.IntegerField(default=0, blank=True)  # Hidden from players
+    rating = models.IntegerField(default=0, blank=True)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.SET_NULL)
     draft_round = models.IntegerField(null=True, blank=True)
+    description = models.TextField(blank=True)  # New field for player description
 
     def __str__(self):
         return self.name
