@@ -31,4 +31,5 @@ urlpatterns = [
     path('profile/', views.player_profile, name='player_profile'),
     path('signup/', views.signup, name='signup'),
     path('comment/<int:player_id>/', views.coach_comment, name='coach_comment'),
+    path('draft/', views.public_draft, name='public_draft'),  # New public page
 ]
