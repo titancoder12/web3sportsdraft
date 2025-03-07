@@ -57,10 +57,10 @@ def make_pick(request, player_id, division_id):
                 player.save()
         except Team.DoesNotExist:
             pass
-    return redirect('dashboard_with_division', division_id=division_id)  # Fix redirect name
+    return redirect('dashboard_with_division', division_id=division_id)
 
 @login_required
-def add_player(request, division_id=None):  # Updated to accept division_id
+def add_player(request, division_id=None):
     if request.method == 'POST':
         form = PlayerForm(request.POST)
         if form.is_valid():
@@ -68,7 +68,7 @@ def add_player(request, division_id=None):  # Updated to accept division_id
             if division_id:
                 player.division = get_object_or_404(Division, id=division_id)
             player.save()
-            return redirect('dashboard', division_id=division_id if division_id else None)
+            return redirect('dashboard_with_division', division_id=division_id if division_id else None)
     else:
         form = PlayerForm()
     return render(request, 'league/add_player.html', {'form': form, 'division_id': division_id})
@@ -107,7 +107,7 @@ def signup(request):
 
 @login_required
 def coach_comment(request, player_id, division_id):
-    player = get_object_or_404(Player, id=player_id, division_id=division_id)  # Scope to division
+    player = get_object_or_404(Player, id=player_id, division_id=division_id)
     division = get_object_or_404(Division, id=division_id)
     if not Team.objects.filter(coaches=request.user, division=division).exists():
         return render(request, 'league/no_permission.html')
@@ -116,7 +116,7 @@ def coach_comment(request, player_id, division_id):
         form = CoachCommentForm(request.POST, instance=player)
         if form.is_valid():
             form.save()
-            return redirect('dashboard', division_id=division_id)
+            return redirect('dashboard_with_division', division_id=division_id)
     else:
         form = CoachCommentForm(instance=player)
     
