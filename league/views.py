@@ -13,13 +13,13 @@ def dashboard(request):
     teams = Team.objects.all()
     available_players = Player.objects.filter(team__isnull=True)
     draft_picks = DraftPick.objects.all()
-    is_coach = Team.objects.filter(coaches=request.user).exists()  # Check if user is a coach
+    is_coach = Team.objects.filter(coaches=request.user).exists()
 
     context = {
         'teams': teams,
         'players': available_players,
         'draft_picks': draft_picks,
-        'is_coach': is_coach,  # Pass coach status to template
+        'is_coach': is_coach,
     }
     return render(request, 'league/dashboard.html', context)
 
@@ -92,15 +92,14 @@ def signup(request):
 @login_required
 def coach_comment(request, player_id):
     player = get_object_or_404(Player, id=player_id)
-    # Check if the user is a coach
     if not Team.objects.filter(coaches=request.user).exists():
-        return render(request, 'league/no_permission.html')  # Permission denied
+        return render(request, 'league/no_permission.html')
     
     if request.method == 'POST':
         form = CoachCommentForm(request.POST, instance=player)
         if form.is_valid():
             form.save()
-            return redirect('dashboard')  # Or wherever you want to redirect
+            return redirect('dashboard')
     else:
         form = CoachCommentForm(instance=player)
     
@@ -109,3 +108,10 @@ def coach_comment(request, player_id):
         'player': player,
     }
     return render(request, 'league/coach_comment.html', context)
+
+def public_draft(request):
+    draft_picks = DraftPick.objects.all()
+    context = {
+        'draft_picks': draft_picks,
+    }
+    return render(request, 'league/public_draft.html', context)
