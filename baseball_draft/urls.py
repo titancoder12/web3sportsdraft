@@ -20,16 +20,20 @@ from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 from league import views
 
+# baseball_draft/urls.py
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/login/', auth_views.LoginView.as_view(template_name='league/login.html'), name='login'),
-    path('accounts/', include('django.contrib.auth.urls')),  # Default auth URLs
-    path('accounts/', RedirectView.as_view(url='/accounts/login/', permanent=False), name='accounts_home'),  # Redirect /accounts/
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/', RedirectView.as_view(url='/accounts/login/', permanent=False), name='accounts_home'),
     path('', views.dashboard, name='dashboard'),
-    path('pick/<int:player_id>/', views.make_pick, name='make_pick'),
+    path('division/<int:division_id>/', views.dashboard, name='dashboard_with_division'),
+    path('pick/<int:player_id>/<int:division_id>/', views.make_pick, name='make_pick'),
     path('add-player/', views.add_player, name='add_player'),
+    path('add-player/<int:division_id>/', views.add_player, name='add_player_with_division'),
     path('profile/', views.player_profile, name='player_profile'),
     path('signup/', views.signup, name='signup'),
-    path('comment/<int:player_id>/', views.coach_comment, name='coach_comment'),
-    path('draft/', views.public_draft, name='public_draft'),  # New public page
+    path('comment/<int:player_id>/<int:division_id>/', views.coach_comment, name='coach_comment'),
+    path('draft/', views.public_draft, name='public_draft'),
+    path('draft/<int:division_id>/', views.public_draft, name='public_draft_with_division'),
 ]
