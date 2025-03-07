@@ -24,17 +24,19 @@ class PlayerForm(forms.ModelForm):
 class PlayerProfileForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['name', 'age', 'position']
+        fields = ['name', 'age', 'position', 'description']  # Added description
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'age': forms.NumberInput(attrs={'class': 'form-control', 'min': 5, 'max': 18}),
             'position': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['age'].required = False
         self.fields['position'].required = False
+        self.fields['description'].required = False
 
 class PlayerSignupForm(UserCreationForm):
     name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
@@ -50,7 +52,6 @@ class PlayerSignupForm(UserCreationForm):
         user = super().save(commit=False)
         if commit:
             user.save()
-            # Create the Player instance linked to this User
             Player.objects.create(
                 user=user,
                 name=self.cleaned_data['name']
