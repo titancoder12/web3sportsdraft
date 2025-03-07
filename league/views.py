@@ -6,34 +6,46 @@ from .models import Team, Player, DraftPick
 from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm
 
 @login_required
-def dashboard(request):
+def dashboard(request, division_id=None):
     if hasattr(request.user, 'player_profile'):
         return redirect('player_profile')
     
-    teams = Team.objects.all()
-    available_players = Player.objects.filter(team__isnull=True)
-    draft_picks = DraftPick.objects.all()
-    is_coach = Team.objects.filter(coaches=request.user).exists()
+    if division_id:
+        division = get_object_or_404(Division, id=division_id)
+    else:
+        division = Division.objects.filter(teams__coaches=request.user).first()
+        if not division:
+            return render(request, 'league/no_division.html')
+    
+    teams = Team.objects.filter(division=division)
+    available_players = Player.objects.filter(division=division, team__isnull=True)  # Scope to division
+    draft_picks = DraftPick.objects.filter(division=division)
+    is_coach = Team.objects.filter(coaches=request.user, division=division).exists()
+    divisions = Division.objects.all()
 
     context = {
+        'division': division,
         'teams': teams,
         'players': available_players,
         'draft_picks': draft_picks,
         'is_coach': is_coach,
+        'divisions': divisions,
     }
     return render(request, 'league/dashboard.html', context)
 
 @login_required
-def make_pick(request, player_id):
+def make_pick(request, player_id, division_id):
     if request.method == 'POST':
-        player = Player.objects.get(id=player_id)
+        player = get_object_or_404(Player, id=player_id, division_id=division_id)  # Ensure player is in division
+        division = get_object_or_404(Division, id=division_id)
         try:
-            team = Team.objects.filter(coaches=request.user).first()
+            team = Team.objects.filter(coaches=request.user, division=division).first()
             if team and team.player_set.count() < team.max_players and not player.team:
-                last_pick = DraftPick.objects.order_by('-pick_number').first()
+                last_pick = DraftPick.objects.filter(division=division).order_by('-pick_number').first()
                 pick_number = last_pick.pick_number + 1 if last_pick else 1
-                round_number = (pick_number - 1) // Team.objects.count() + 1
+                round_number = (pick_number - 1) // Team.objects.filter(division=division).count() + 1
                 DraftPick.objects.create(
+                    division=division,
                     team=team,
                     player=player,
                     pick_number=pick_number,
@@ -44,18 +56,21 @@ def make_pick(request, player_id):
                 player.save()
         except Team.DoesNotExist:
             pass
-    return redirect('dashboard')
+    return redirect('dashboard', division_id=division_id)
 
 @login_required
-def add_player(request):
+def add_player(request, division_id=None):  # Updated to accept division_id
     if request.method == 'POST':
         form = PlayerForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect('dashboard')
+            player = form.save(commit=False)
+            if division_id:
+                player.division = get_object_or_404(Division, id=division_id)
+            player.save()
+            return redirect('dashboard', division_id=division_id if division_id else None)
     else:
         form = PlayerForm()
-    return render(request, 'league/add_player.html', {'form': form})
+    return render(request, 'league/add_player.html', {'form': form, 'division_id': division_id})
 
 @login_required
 def player_profile(request):
@@ -90,16 +105,17 @@ def signup(request):
     return render(request, 'league/signup.html', {'form': form})
 
 @login_required
-def coach_comment(request, player_id):
-    player = get_object_or_404(Player, id=player_id)
-    if not Team.objects.filter(coaches=request.user).exists():
+def coach_comment(request, player_id, division_id):
+    player = get_object_or_404(Player, id=player_id, division_id=division_id)  # Scope to division
+    division = get_object_or_404(Division, id=division_id)
+    if not Team.objects.filter(coaches=request.user, division=division).exists():
         return render(request, 'league/no_permission.html')
     
     if request.method == 'POST':
         form = CoachCommentForm(request.POST, instance=player)
         if form.is_valid():
             form.save()
-            return redirect('dashboard')
+            return redirect('dashboard', division_id=division_id)
     else:
         form = CoachCommentForm(instance=player)
     
