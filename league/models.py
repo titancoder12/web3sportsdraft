@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
-    coach = models.OneToOneField(User, on_delete=models.CASCADE)
+    coaches = models.ManyToManyField(User, related_name='teams')  # Changed to ManyToManyField
     max_players = models.IntegerField(default=12)
 
     def __str__(self):

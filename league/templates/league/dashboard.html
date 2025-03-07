@@ -1,105 +1,83 @@
 <!-- league/templates/league/dashboard.html -->
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title>Baseball Draft</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
     <div class="container mt-3">
-      <h1>Youth Baseball Draft</h1>
-      <div class="mb-3">
-        <a href="{% url 'add_player' %}" class="btn btn-success"
-          >Add New Player</a
-        >
-        <a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
-      </div>
-
-      <div class="row">
-        <div class="col-md-4">
-          <h2>Teams</h2>
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>Team</th>
-                <th>Players</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for team in teams %}
-              <tr>
-                <td>{{ team.name }}</td>
-                <td>{{ team.player_set.count }}/{{ team.max_players }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <h1>Youth Baseball Draft</h1>
+        <div class="mb-3">
+            <a href="{% url 'add_player' %}" class="btn btn-success">Add New Player</a>
+            <a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
         </div>
 
-        <div class="col-md-4">
-          <h2>Available Players</h2>
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Age</th>
-                <th>Position</th>
-                <th>Rating</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for player in players %}
-              <tr>
-                <td>{{ player.name }}</td>
-                <td>{{ player.age }}</td>
-                <td>{{ player.position }}</td>
-                <td>{{ player.rating }}</td>
-                <td>
-                  {% if request.user.team %}
-                  <form method="post" action="{% url 'make_pick' player.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-primary btn-sm">
-                      Draft
-                    </button>
-                  </form>
-                  {% else %}
-                  <span>Not a coach</span>
-                  {% endif %}
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <h2>Teams</h2>
+                <table class="table table-bordered">
+                    <thead><tr><th>Team</th><th>Coaches</th><th>Players</th></tr></thead>
+                    <tbody>
+                        {% for team in teams %}
+                            <tr>
+                                <td>{{ team.name }}</td>
+                                <td>
+                                    {% for coach in team.coaches.all %}
+                                        {{ coach.username }}{% if not forloop.last %}, {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>{{ team.player_set.count }}/{{ team.max_players }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="col-md-4">
-          <h2>Draft History</h2>
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>Round</th>
-                <th>Pick</th>
-                <th>Team</th>
-                <th>Player</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for pick in draft_picks %}
-              <tr>
-                <td>{{ pick.round_number }}</td>
-                <td>{{ pick.pick_number }}</td>
-                <td>{{ pick.team.name }}</td>
-                <td>{{ pick.player.name }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+            <div class="col-md-4">
+              <h2>Available Players</h2>
+              <table class="table table-bordered">
+                  <thead><tr><th>Name</th><th>Age</th><th>Position</th><th>Rating</th><th>Action</th></tr></thead>
+                  <tbody>
+                      {% for player in players %}
+                          <tr>
+                              <td>{{ player.name }}</td>
+                              <td>{{ player.age }}</td>
+                              <td>{{ player.position }}</td>
+                              <td>{{ player.rating }}</td>
+                              <td>
+                                  {% if request.user.teams.exists %}
+                                      <form method="post" action="{% url 'make_pick' player.id %}">
+                                          {% csrf_token %}
+                                          <button type="submit" class="btn btn-primary btn-sm">Draft</button>
+                                      </form>
+                                  {% else %}
+                                      <span>Not a coach</span>
+                                  {% endif %}
+                              </td>
+                          </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
+          </div>
+
+            <div class="col-md-4">
+                <h2>Draft History</h2>
+                <table class="table table-bordered">
+                    <thead><tr><th>Round</th><th>Pick</th><th>Team</th><th>Player</th></tr></thead>
+                    <tbody>
+                        {% for pick in draft_picks %}
+                            <tr>
+                                <td>{{ pick.round_number }}</td>
+                                <td>{{ pick.pick_number }}</td>
+                                <td>{{ pick.team.name }}</td>
+                                <td>{{ pick.player.name }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-      </div>
     </div>
-  </body>
+</body>
 </html>

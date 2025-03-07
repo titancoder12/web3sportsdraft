@@ -21,8 +21,9 @@ def make_pick(request, player_id):
     if request.method == 'POST':
         player = Player.objects.get(id=player_id)
         try:
-            team = Team.objects.get(coach=request.user)
-            if team.player_set.count() < team.max_players and not player.team:
+            # Get the first team where the user is a coach
+            team = Team.objects.filter(coaches=request.user).first()
+            if team and team.player_set.count() < team.max_players and not player.team:
                 last_pick = DraftPick.objects.order_by('-pick_number').first()
                 pick_number = last_pick.pick_number + 1 if last_pick else 1
                 round_number = (pick_number - 1) // Team.objects.count() + 1
@@ -37,7 +38,7 @@ def make_pick(request, player_id):
                 player.draft_round = round_number
                 player.save()
         except Team.DoesNotExist:
-            pass  # User isn't a coach
+            pass  # User isn't a coach of any team
     return redirect('dashboard')
 
 @login_required
