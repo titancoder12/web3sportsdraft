@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Team, Player, DraftPick
-from .forms import PlayerForm
+from .forms import PlayerForm, PlayerProfileForm
 
 @login_required
 def dashboard(request):
@@ -21,7 +21,6 @@ def make_pick(request, player_id):
     if request.method == 'POST':
         player = Player.objects.get(id=player_id)
         try:
-            # Get the first team where the user is a coach
             team = Team.objects.filter(coaches=request.user).first()
             if team and team.player_set.count() < team.max_players and not player.team:
                 last_pick = DraftPick.objects.order_by('-pick_number').first()
@@ -38,7 +37,7 @@ def make_pick(request, player_id):
                 player.draft_round = round_number
                 player.save()
         except Team.DoesNotExist:
-            pass  # User isn't a coach of any team
+            pass
     return redirect('dashboard')
 
 @login_required
@@ -51,3 +50,24 @@ def add_player(request):
     else:
         form = PlayerForm()
     return render(request, 'league/add_player.html', {'form': form})
+
+@login_required
+def player_profile(request):
+    try:
+        player = request.user.player_profile  # Get the logged-in user's Player instance
+    except Player.DoesNotExist:
+        return render(request, 'league/no_profile.html')  # Handle if no Player is linked
+
+    if request.method == 'POST':
+        form = PlayerProfileForm(request.POST, instance=player)
+        if form.is_valid():
+            form.save()
+            return redirect('player_profile')
+    else:
+        form = PlayerProfileForm(instance=player)
+    
+    context = {
+        'form': form,
+        'player': player,
+    }
+    return render(request, 'league/player_profile.html', context)

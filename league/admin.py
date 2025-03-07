@@ -11,8 +11,11 @@ admin.site.index_title = "Welcome Web3Sports Draft Admin"  # Title on the admin 
 class TeamAdmin(admin.ModelAdmin):
     filter_horizontal = ('coaches',)
 
+
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'age', 'position', 'rating', 'team')
+    list_display = ('name', 'age', 'position', 'rating', 'team', 'user')
+    list_filter = ('team',)
+    search_fields = ('name',)
 
 admin.site.register(DraftPick)

@@ -11,10 +11,11 @@ class Team(models.Model):
         return self.name
 
 class Player(models.Model):
-    name = models.CharField(max_length=100)  # Required field
-    age = models.IntegerField(null=True, blank=True)  # Optional
-    position = models.CharField(max_length=50, blank=True)  # Optional, no null since it's a CharField
-    rating = models.IntegerField(default=0, blank=True)  # Optional with default
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='player_profile')  # Link to User
+    name = models.CharField(max_length=100)
+    age = models.IntegerField(null=True, blank=True)
+    position = models.CharField(max_length=50, blank=True)
+    rating = models.IntegerField(default=0, blank=True)  # Hidden from players
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.SET_NULL)
     draft_round = models.IntegerField(null=True, blank=True)
 

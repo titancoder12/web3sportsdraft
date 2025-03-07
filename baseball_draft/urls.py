@@ -26,4 +26,5 @@ urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('pick/<int:player_id>/', views.make_pick, name='make_pick'),
     path('add-player/', views.add_player, name='add_player'),
+    path('profile/', views.player_profile, name='player_profile'),
 ]
