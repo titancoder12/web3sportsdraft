@@ -18,7 +18,8 @@ class Player(models.Model):
     rating = models.IntegerField(default=0, blank=True)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.SET_NULL)
     draft_round = models.IntegerField(null=True, blank=True)
-    description = models.TextField(blank=True)  # New field for player description
+    description = models.TextField(blank=True)
+    coach_comments = models.TextField(blank=True)  # New field for coach comments
 
     def __str__(self):
         return self.name
