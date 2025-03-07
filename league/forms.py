@@ -8,9 +8,10 @@ from .models import Player
 class PlayerForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['name', 'age', 'position', 'rating', 'division']
+        fields = ['first_name','last_name', 'age', 'position', 'rating', 'division']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'age': forms.NumberInput(attrs={'class': 'form-control', 'min': 5, 'max': 18}),
             'position': forms.TextInput(attrs={'class': 'form-control'}),
             'rating': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100}),
@@ -27,9 +28,10 @@ class PlayerForm(forms.ModelForm):
 class PlayerProfileForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['name', 'age', 'position', 'description']  # No coach_comments
+        fields = ['first_name','last_name', 'age', 'position', 'description']  # No coach_comments
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'age': forms.NumberInput(attrs={'class': 'form-control', 'min': 5, 'max': 18}),
             'position': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
@@ -50,11 +52,12 @@ class CoachCommentForm(forms.ModelForm):
         }
 
 class PlayerSignupForm(UserCreationForm):
-    name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
+    first_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
+    last_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
 
     class Meta:
         model = User
-        fields = ['username', 'name', 'password1', 'password2']
+        fields = ['username', 'first_name','last_name', 'password1', 'password2']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
         }
@@ -65,6 +68,7 @@ class PlayerSignupForm(UserCreationForm):
             user.save()
             Player.objects.create(
                 user=user,
-                name=self.cleaned_data['name']
+                first_name=self.cleaned_data['first_name'],
+                last_name=self.cleaned_data['last_name']
             )
         return user

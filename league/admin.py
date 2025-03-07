@@ -23,9 +23,9 @@ class TeamAdmin(admin.ModelAdmin):
 
 @admin.register(Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'age', 'position', 'rating', 'team', 'user', 'description', 'coach_comments')
+    list_display = ('first_name','last_name', 'age', 'position', 'rating', 'team', 'user', 'description', 'coach_comments')
     list_filter = ('team',)
-    search_fields = ('name', 'description', 'coach_comments')
+    search_fields = ('first_name','last_name', 'description', 'coach_comments')
 
 @admin.register(DraftPick)
 class DraftPickAdmin(admin.ModelAdmin):
