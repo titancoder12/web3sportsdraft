@@ -24,7 +24,7 @@ class PlayerForm(forms.ModelForm):
 class PlayerProfileForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['name', 'age', 'position', 'description']  # Added description
+        fields = ['name', 'age', 'position', 'description']  # No coach_comments
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'age': forms.NumberInput(attrs={'class': 'form-control', 'min': 5, 'max': 18}),
@@ -38,14 +38,20 @@ class PlayerProfileForm(forms.ModelForm):
         self.fields['position'].required = False
         self.fields['description'].required = False
 
-# league/forms.py (update PlayerSignupForm)
+class CoachCommentForm(forms.ModelForm):
+    class Meta:
+        model = Player
+        fields = ['coach_comments']
+        widgets = {
+            'coach_comments': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
 class PlayerSignupForm(UserCreationForm):
     name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
-    description = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4}), required=False)
 
     class Meta:
         model = User
-        fields = ['username', 'name', 'description', 'password1', 'password2']
+        fields = ['username', 'name', 'password1', 'password2']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
         }
@@ -56,7 +62,6 @@ class PlayerSignupForm(UserCreationForm):
             user.save()
             Player.objects.create(
                 user=user,
-                name=self.cleaned_data['name'],
-                description=self.cleaned_data['description']
+                name=self.cleaned_data['name']
             )
         return user
