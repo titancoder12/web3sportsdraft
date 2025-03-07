@@ -17,12 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from django.views.generic import RedirectView
 from league import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/login/', auth_views.LoginView.as_view(template_name='league/login.html'), name='login'),
     path('accounts/', include('django.contrib.auth.urls')),  # Default auth URLs
+    path('accounts/', RedirectView.as_view(url='/accounts/login/', permanent=False), name='accounts_home'),  # Redirect /accounts/
     path('', views.dashboard, name='dashboard'),
     path('pick/<int:player_id>/', views.make_pick, name='make_pick'),
     path('add-player/', views.add_player, name='add_player'),
