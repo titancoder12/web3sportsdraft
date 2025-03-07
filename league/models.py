@@ -27,7 +27,8 @@ class Team(models.Model):
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='player_profile')
-    name = models.CharField(max_length=100)
+    first_name = models.CharField(max_length=50)  # New field
+    last_name = models.CharField(max_length=50)   # New field
     age = models.IntegerField(null=True, blank=True)
     position = models.CharField(max_length=50, blank=True)
     rating = models.IntegerField(default=0, blank=True)
@@ -35,10 +36,10 @@ class Player(models.Model):
     draft_round = models.IntegerField(null=True, blank=True)
     description = models.TextField(blank=True)
     coach_comments = models.TextField(blank=True)
-    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='players', null=True)  # Scope players to division
+    division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='players', null=True)
 
     def __str__(self):
-        return f"{self.name} ({self.division})"
+        return f"{self.first_name} {self.last_name} ({self.division})"
 
 class DraftPick(models.Model):
     division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='draft_picks')
