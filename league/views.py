@@ -9,13 +9,17 @@ from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachComment
 def dashboard(request):
     if hasattr(request.user, 'player_profile'):
         return redirect('player_profile')
+    
     teams = Team.objects.all()
     available_players = Player.objects.filter(team__isnull=True)
     draft_picks = DraftPick.objects.all()
+    is_coach = Team.objects.filter(coaches=request.user).exists()  # Check if user is a coach
+
     context = {
         'teams': teams,
         'players': available_players,
         'draft_picks': draft_picks,
+        'is_coach': is_coach,  # Pass coach status to template
     }
     return render(request, 'league/dashboard.html', context)
 
