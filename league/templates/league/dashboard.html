@@ -38,31 +38,37 @@
                 </table>
             </div>
 
-            <div class="col-md-4">
-              <h2>Available Players</h2>
-              <table class="table table-bordered">
-                  <thead><tr><th>Name</th><th>Age</th><th>Position</th><th>Rating</th><th>Action</th></tr></thead>
-                  <tbody>
-                      {% for player in players %}
-                          <tr>
-                              <td>{{ player.name }}</td>
-                              <td>{{ player.age }}</td>
-                              <td>{{ player.position }}</td>
-                              <td>{{ player.rating }}</td>
-                              <td>
-                                  {% if request.user.teams.exists %}
-                                      <form method="post" action="{% url 'make_pick' player.id %}">
-                                          {% csrf_token %}
-                                          <button type="submit" class="btn btn-primary btn-sm">Draft</button>
-                                      </form>
-                                  {% else %}
-                                      <span>Not a coach</span>
-                                  {% endif %}
-                              </td>
-                          </tr>
-                      {% endfor %}
-                  </tbody>
-              </table>
+          <!-- league/templates/league/dashboard.html (update Available Players section) -->
+          <div class="col-md-4">
+            <h2>Available Players</h2>
+            <table class="table table-bordered">
+                <thead><tr><th>Name</th><th>Age</th><th>Position</th><th>Rating</th><th>Action</th><th>Comment</th></tr></thead>
+                <tbody>
+                    {% for player in players %}
+                        <tr>
+                            <td>{{ player.name }}</td>
+                            <td>{{ player.age|default:"" }}</td>
+                            <td>{{ player.position|default:"" }}</td>
+                            <td>{{ player.rating }}</td>
+                            <td>
+                                {% if request.user.teams.exists %}
+                                    <form method="post" action="{% url 'make_pick' player.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary btn-sm">Draft</button>
+                                    </form>
+                                {% else %}
+                                    <span>Not a coach</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if request.user.teams.exists %}
+                                    <a href="{% url 'coach_comment' player.id %}" class="btn btn-info btn-sm">Add Comment</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
           </div>
 
             <div class="col-md-4">
