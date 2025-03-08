@@ -1,4 +1,5 @@
 # league/views.py
+# league/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -19,11 +20,32 @@ def dashboard(request, division_id=None):
         if not division:
             return render(request, 'league/no_division.html', {'divisions': Division.objects.all()})
     
-    teams = Team.objects.filter(division=division).prefetch_related('player_set', 'coaches')  # Optimize queries
+    teams = Team.objects.filter(division=division).prefetch_related('player_set', 'coaches')
     available_players = Player.objects.filter(division=division, team__isnull=True)
     draft_picks = DraftPick.objects.filter(division=division)
     is_coach = Team.objects.filter(coaches=request.user, division=division).exists()
     is_coordinator = division.coordinators.filter(id=request.user.id).exists()
+
+    # Handle undraft action
+    if request.method == 'POST' and 'undraft_player_id' in request.POST:
+        if not (is_coordinator or is_coach):  # Restrict to coordinators or coaches
+            return render(request, 'league/no_permission.html')
+        
+        player_id = request.POST.get('undraft_player_id')
+        player = get_object_or_404(Player, id=player_id, division=division)
+        
+        # Only allow undrafting if the player is on a team
+        if player.team:
+            # Optionally restrict coaches to their own team
+            if is_coach and not is_coordinator and not player.team.coaches.filter(id=request.user.id).exists():
+                return render(request, 'league/no_permission.html')
+            
+            # Remove player from team and delete related DraftPick
+            DraftPick.objects.filter(player=player, division=division).delete()
+            player.team = None
+            player.draft_round = None
+            player.save()
+        return redirect('dashboard_with_division', division_id=division_id)
 
     # Prepare team rosters
     team_rosters = {team.id: list(team.player_set.all()) for team in teams}
@@ -36,7 +58,7 @@ def dashboard(request, division_id=None):
         'is_coach': is_coach,
         'is_coordinator': is_coordinator,
         'divisions': Division.objects.all(),
-        'team_rosters': team_rosters,  # New context variable
+        'team_rosters': team_rosters,
     }
     return render(request, 'league/dashboard.html', context)
 
