@@ -1,35 +1,76 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Trade Players - Baseball Draft</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container mt-5">
-        <h1>Trade Players in {{ division }}</h1>
-        <form method="post">
-            {% csrf_token %}
-            <div class="mb-3">
-                <label for="player1_id" class="form-label">Player 1 (From Team):</label>
-                <select name="player1_id" id="player1_id" class="form-select" required>
-                    <option value="">-- Select Player 1 --</option>
-                    {% for player in players %}
-                        <option value="{{ player.id }}">{{ player.first_name }} {{ player.last_name }} ({{ player.team.name }})</option>
-                    {% endfor %}
-                </select>
+{% extends 'league/base.html' %}
+
+{% block title %}Trade Players - {{ division }}{% endblock %}
+
+{% block content %}
+    <h1>Trade Players - {{ division }}</h1>
+    
+    {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-danger{% endif %}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" class="w-75">
+        {% csrf_token %}
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="id_team1" class="form-label">Team 1</label>
+                {{ form.team1 }}
+                {% if form.team1.errors %}
+                    <div class="text-danger">{{ form.team1.errors }}</div>
+                {% endif %}
             </div>
-            <div class="mb-3">
-                <label for="player2_id" class="form-label">Player 2 (To Team, Optional):</label>
-                <select name="player2_id" id="player2_id" class="form-select">
-                    <option value="">-- None (Move Player 1 Only) --</option>
-                    {% for player in players %}
-                        <option value="{{ player.id }}">{{ player.first_name }} {{ player.last_name }} ({{ player.team.name }})</option>
-                    {% endfor %}
-                </select>
+            <div class="col-md-6">
+                <label for="id_player1" class="form-label">Player from Team 1</label>
+                {{ form.player1 }}
+                {% if form.player1.errors %}
+                    <div class="text-danger">{{ form.player1.errors }}</div>
+                {% endif %}
             </div>
-            <button type="submit" class="btn btn-primary">Execute Trade</button>
-            <a href="{% url 'dashboard_with_division' division.id %}" class="btn btn-secondary">Cancel</a>
-        </form>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="id_team2" class="form-label">Team 2</label>
+                {{ form.team2 }}
+                {% if form.team2.errors %}
+                    <div class="text-danger">{{ form.team2.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label for="id_player2" class="form-label">Player from Team 2</label>
+                {{ form.player2 }}
+                {% if form.player2.errors %}
+                    <div class="text-danger">{{ form.player2.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% if form.non_field_errors %}
+            <div class="text-danger mb-3">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">Trade Players</button>
+        <a href="{% url 'dashboard_with_division' division.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+
+    <h2 class="mt-4">Current Rosters</h2>
+    <div class="row">
+        {% for team in teams %}
+            <div class="col-md-6 mb-3">
+                <h3>{{ team.name }}</h3>
+                <ul>
+                    {% for player in team.player_set.all %}
+                        <li>{{ player.first_name }} {{ player.last_name }}</li>
+                    {% empty %}
+                        <li>No players</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
     </div>
-</body>
-</html>
+{% endblock %}

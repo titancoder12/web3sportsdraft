@@ -1,9 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Baseball Draft - {{ division }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% extends 'league/base.html' %}
+{% load league_tags %}
+
+{% block title %}Baseball Draft - {{ division }}{% endblock %}
+
+{% block extra_head %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% endblock %}
+
+{% block extra_css %}
     <style>
         .team-roster { max-height: 200px; overflow-y: auto; }
         .player-item { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
@@ -11,188 +15,158 @@
         .table th, .table td { vertical-align: middle; }
         .sort-arrow { font-size: 0.8em; margin-left: 5px; }
     </style>
-</head>
-<body>
-    {% load league_tags %}
-    <div class="container mt-4">
-        <!-- Header Section -->
-        <div class="mb-4">
-            <h1 class="display-5">Youth Baseball Draft - {{ division }}</h1>
-            <p class="lead"><strong>Draft Status:</strong> {% if division.is_open %}Open{% else %}Closed{% endif %}</p>
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-                <select class="form-select w-auto" onchange="location = this.value;">
-                    {% for div in divisions %}
-                        <option value="{% url 'dashboard_with_division' div.id %}" {% if div == division %}selected{% endif %}>
-                            {{ div }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <a href="{% url 'add_player_with_division' division.id %}" class="btn btn-success">Add Player</a>
-                <a href="{% url 'player_profile' %}" class="btn btn-info">My Profile</a>
-                {% if is_coordinator %}
-                    <a href="{% url 'toggle_draft_status' division.id %}" class="btn btn-warning">Toggle Draft</a>
-                    <a href="{% url 'trade_players' division.id %}" class="btn btn-info">Trade Players</a>
-                    <a href="{% url 'import_players' %}" class="btn btn-success">Import Players</a>
-                {% endif %}
-                <form method="post" action="{% url 'logout' %}" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-secondary">Logout</button>
-                </form>
-            </div>
-        </div>
+{% endblock %}
 
-        <!-- Main Content -->
-        <div class="row">
-            <!-- Teams Section (unchanged) -->
-            <div class="col-md-6 mb-4">
-                <h2>Teams</h2>
-                <div class="accordion" id="teamsAccordion">
-                    {% for team in teams %}
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="heading{{ team.id }}">
-                                <button class="accordion-button {% if forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ team.id }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ team.id }}">
-                                    {{ team.name }} ({{ team.player_set.count }}/{{ team.max_players }})
-                                </button>
-                            </h2>
-                            <div id="collapse{{ team.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ team.id }}" data-bs-parent="#teamsAccordion">
-                                <div class="accordion-body">
-                                    <p><strong>Coaches:</strong> 
-                                        {% for coach in team.coaches.all %}
-                                            {{ coach.username }}{% if not forloop.last %}, {% endif %}
-                                        {% empty %}
-                                            None
-                                        {% endfor %}
-                                    </p>
-                                    <div class="team-roster">
-                                        {% for player in team_rosters|get_item:team.id %}
-                                            <div class="player-item">
-                                                <a href="{% url 'player_detail' player.id %}">{{ player.first_name }} {{ player.last_name }}</a>
-                                                {% if is_coordinator or is_coach and team.coaches.all|length and request.user in team.coaches.all %}
-                                                    <form method="post" action="{% url 'dashboard_with_division' division.id %}" class="d-inline">
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="undraft_player_id" value="{{ player.id }}">
-                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Undraft {{ player.first_name }} {{ player.last_name }}?');">Undraft</button>
-                                                    </form>
-                                                {% endif %}
-                                            </div>
-                                        {% empty %}
-                                            <p>No players</p>
-                                        {% endfor %}
-                                    </div>
+{% block content %}
+    <!-- Header Section -->
+    <div class="mb-4">
+        <h1 class="display-5">Youth Baseball Draft - {{ division }}</h1>
+        <p class="lead"><strong>Draft Status:</strong> {% if division.is_open %}Open{% else %}Closed{% endif %}</p>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <select class="form-select w-auto" onchange="location = this.value;">
+                {% for div in divisions %}
+                    <option value="{% url 'dashboard_with_division' div.id %}" {% if div == division %}selected{% endif %}>
+                        {{ div }}
+                    </option>
+                {% endfor %}
+            </select>
+            <a href="{% url 'add_player_with_division' division.id %}" class="btn btn-success">Add Player</a>
+            <a href="{% url 'player_profile' %}" class="btn btn-info">My Profile</a>
+            {% if is_coordinator %}
+                <a href="{% url 'toggle_draft_status' division.id %}" class="btn btn-warning">Toggle Draft</a>
+                <a href="{% url 'trade_players' division.id %}" class="btn btn-info">Trade Players</a>
+                <a href="{% url 'import_players' %}" class="btn btn-success">Import Players</a>
+            {% endif %}
+            <form method="post" action="{% url 'logout' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Teams Section -->
+        <div class="col-md-6 mb-4">
+            <h2>Teams</h2>
+            <div class="accordion" id="teamsAccordion">
+                {% for team in teams %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ team.id }}">
+                            <button class="accordion-button {% if forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ team.id }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ team.id }}">
+                                {{ team.name }} ({{ team.player_set.count }}/{{ team.max_players }})
+                            </button>
+                        </h2>
+                        <div id="collapse{{ team.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ team.id }}" data-bs-parent="#teamsAccordion">
+                            <div class="accordion-body">
+                                <p><strong>Coaches:</strong> 
+                                    {% for coach in team.coaches.all %}
+                                        {{ coach.username }}{% if not forloop.last %}, {% endif %}
+                                    {% empty %}
+                                        None
+                                    {% endfor %}
+                                </p>
+                                <div class="team-roster">
+                                    {% for player in team_rosters|get_item:team.id %}
+                                        <div class="player-item">
+                                            <a href="{% url 'player_detail' player.id %}">{{ player.first_name }} {{ player.last_name }}</a>
+                                            {% if is_coordinator or is_coach and team.coaches.all|length and request.user in team.coaches.all %}
+                                                <form method="post" action="{% url 'dashboard_with_division' division.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="undraft_player_id" value="{{ player.id }}">
+                                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Undraft {{ player.first_name }} {{ player.last_name }}?');">Undraft</button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    {% empty %}
+                                        <p>No players</p>
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
-                    {% endfor %}
-                </div>
+                    </div>
+                {% endfor %}
             </div>
+        </div>
 
-            <!-- Available Players Section -->
-            <div class="col-md-6 mb-4">
-                <h2>Available Players</h2>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-sm">
-                        <thead>
+        <!-- Available Players Section -->
+        <div class="col-md-6 mb-4">
+            <h2>Available Players</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th><a href="{% url 'dashboard_with_division' division.id %}?sort_by=first_name&sort_order={% if sort_by == 'first_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none">First Name {% if sort_by == 'first_name' %}<span class="sort-arrow">{% if sort_order == 'asc' %}▲{% else %}▼{% endif %}</span>{% endif %}</a></th>
+                            <th><a href="{% url 'dashboard_with_division' division.id %}?sort_by=last_name&sort_order={% if sort_by == 'last_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none">Last Name {% if sort_by == 'last_name' %}<span class="sort-arrow">{% if sort_order == 'asc' %}▲{% else %}▼{% endif %}</span>{% endif %}</a></th>
+                            <th><a href="{% url 'dashboard_with_division' division.id %}?sort_by=birthdate&sort_order={% if sort_by == 'birthdate' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none">Birthdate {% if sort_by == 'birthdate' %}<span class="sort-arrow">{% if sort_order == 'asc' %}▲{% else %}▼{% endif %}</span>{% endif %}</a></th>
+                            <th>Primary Position</th>
+                            <th>Coach Comments</th>
+                            <th>Action</th>
+                            <th>Comment</th>
+                            {% if is_coordinator %}<th>Delete</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for player in players %}
                             <tr>
-                                <th>
-                                    <a href="{% url 'dashboard_with_division' division.id %}?sort_by=first_name&sort_order={% if sort_by == 'first_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none">
-                                        First Name
-                                        {% if sort_by == 'first_name' %}
-                                            <span class="sort-arrow">{% if sort_order == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                        {% endif %}
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="{% url 'dashboard_with_division' division.id %}?sort_by=last_name&sort_order={% if sort_by == 'last_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none">
-                                        Last Name
-                                        {% if sort_by == 'last_name' %}
-                                            <span class="sort-arrow">{% if sort_order == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                        {% endif %}
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="{% url 'dashboard_with_division' division.id %}?sort_by=birthdate&sort_order={% if sort_by == 'birthdate' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none">
-                                        Birthdate
-                                        {% if sort_by == 'birthdate' %}
-                                            <span class="sort-arrow">{% if sort_order == 'asc' %}▲{% else %}▼{% endif %}</span>
-                                        {% endif %}
-                                    </a>
-                                </th>
-                                <th>Primary Position</th>
-                                <th>Coach Comments</th>
-                                <th>Action</th>
-                                <th>Comment</th>
-                                {% if is_coordinator %}<th>Delete</th>{% endif %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for player in players %}
-                                <tr>
-                                    <td><a href="{% url 'player_detail' player.id %}">{{ player.first_name }}</a></td>
-                                    <td>{{ player.last_name }}</td>
-                                    <td>{{ player.birthdate|date:"Y-m-d"|default:"N/A" }}</td>
-                                    <td>{{ player.primary_positions|default:"N/A" }}</td>
-                                    <td>{{ player.coach_comments|default:"N/A" }}</td>
-                                    <td>
-                                        {% if division.is_open and is_coordinator or is_coach %}
-                                            {% if is_coordinator %}
-                                                <a href="{% url 'make_pick' player.id division.id %}" class="btn btn-primary btn-sm">Draft</a>
-                                            {% else %}
-                                                <form method="post" action="{% url 'make_pick' player.id division.id %}" class="d-inline">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="btn btn-primary btn-sm">Draft</button>
-                                                </form>
-                                            {% endif %}
+                                <td><a href="{% url 'player_detail' player.id %}">{{ player.first_name }}</a></td>
+                                <td>{{ player.last_name }}</td>
+                                <td>{{ player.birthdate|date:"Y-m-d"|default:"N/A" }}</td>
+                                <td>{{ player.primary_positions|default:"N/A" }}</td>
+                                <td>{{ player.coach_comments|default:"N/A" }}</td>
+                                <td>
+                                    {% if division.is_open and is_coordinator or is_coach %}
+                                        {% if is_coordinator %}
+                                            <a href="{% url 'make_pick' player.id division.id %}" class="btn btn-primary btn-sm">Draft</a>
                                         {% else %}
-                                            <span>Draft Closed</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if is_coach %}
-                                            <a href="{% url 'coach_comment' player.id division.id %}" class="btn btn-info btn-sm">Comment</a>
-                                        {% endif %}
-                                    </td>
-                                    {% if is_coordinator %}
-                                        <td>
-                                            <form method="post" action="{% url 'dashboard_with_division' division.id %}" class="d-inline">
+                                            <form method="post" action="{% url 'make_pick' player.id division.id %}" class="d-inline">
                                                 {% csrf_token %}
-                                                <input type="hidden" name="delete_player_id" value="{{ player.id }}">
-                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete {{ player.first_name }} {{ player.last_name }}? This will also delete their user account.');">Delete</button>
+                                                <button type="submit" class="btn btn-primary btn-sm">Draft</button>
                                             </form>
-                                        </td>
-                                    {% endif %}
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Draft History Section (unchanged) -->
-            <div class="col-md-12">
-                <h2>Draft History</h2>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead><tr><th>Round</th><th>Pick</th><th>Team</th><th>Player</th></tr></thead>
-                        <tbody>
-                            {% for pick in draft_picks %}
-                                <tr>
-                                    <td>
-                                        {% if pick.round_number == 999 %}
-                                            Trade
-                                        {% else %}
-                                            {{ pick.round_number }}
                                         {% endif %}
+                                    {% else %}
+                                        <span>Draft Closed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if is_coach %}
+                                        <a href="{% url 'coach_comment' player.id division.id %}" class="btn btn-info btn-sm">Comment</a>
+                                    {% endif %}
+                                </td>
+                                {% if is_coordinator %}
+                                    <td>
+                                        <form method="post" action="{% url 'dashboard_with_division' division.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="delete_player_id" value="{{ player.id }}">
+                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete {{ player.first_name }} {{ player.last_name }}? This will also delete their user account.');">Delete</button>
+                                        </form>
                                     </td>
-                                    <td>{{ pick.pick_number }}</td>
-                                    <td>{{ pick.team.name }}</td>
-                                    <td>{{ pick.player.first_name }} {{ pick.player.last_name }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Draft History Section -->
+        <div class="col-md-12">
+            <h2>Draft History</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead><tr><th>Round</th><th>Pick</th><th>Team</th><th>Player</th></tr></thead>
+                    <tbody>
+                        {% for pick in draft_picks %}
+                            <tr>
+                                <td>{% if pick.round_number == 999 %}Trade{% else %}{{ pick.round_number }}{% endif %}</td>
+                                <td>{{ pick.pick_number }}</td>
+                                <td>{{ pick.team.name }}</td>
+                                <td>{{ pick.player.first_name }} {{ pick.player.last_name }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}
