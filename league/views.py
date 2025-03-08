@@ -18,49 +18,76 @@ def dashboard(request, division_id=None):
             return render(request, 'league/no_division.html')
     
     teams = Team.objects.filter(division=division)
-    available_players = Player.objects.filter(division=division, team__isnull=True)  # Scope to division
+    available_players = Player.objects.filter(division=division, team__isnull=True)
     draft_picks = DraftPick.objects.filter(division=division)
     is_coach = Team.objects.filter(coaches=request.user, division=division).exists()
-    divisions = Division.objects.all()
+    is_coordinator = division.coordinators.filter(id=request.user.id).exists()  # Add coordinator check
 
     context = {
         'division': division,
         'teams': teams,
         'players': available_players,
         'draft_picks': draft_picks,
-        'is_coach': is_coach,
-        'divisions': divisions,
+        'is_coach': is_coach,  # Already computed in view
+        'is_coordinator': is_coordinator,  # New variable
+        'divisions': Division.objects.all(),
     }
     return render(request, 'league/dashboard.html', context)
 
 # league/views.py (relevant section)
 @login_required
 def make_pick(request, player_id, division_id):
+    player = get_object_or_404(Player, id=player_id, division_id=division_id)
+    division = get_object_or_404(Division, id=division_id)
+    
+    if not division.is_open:  # Check if draft is open
+        return render(request, 'league/draft_closed.html', {'division': division})
+    
+    # Check if user is a coordinator or coach
+    is_coordinator = division.coordinators.filter(id=request.user.id).exists()
+    is_coach = Team.objects.filter(coaches=request.user, division=division).exists()
+    
+    if not (is_coordinator or is_coach):
+        return render(request, 'league/no_permission.html')
+    
     if request.method == 'POST':
-        player = get_object_or_404(Player, id=player_id, division_id=division_id)
-        division = get_object_or_404(Division, id=division_id)
-        
-        if not division.is_open:  # Check if draft is open
-            return render(request, 'league/draft_closed.html', {'division': division})
-        
-        try:
+        if is_coordinator:
+            # Coordinators can select a team via POST data
+            team_id = request.POST.get('team_id')
+            if not team_id:
+                return render(request, 'league/select_team.html', {
+                    'division': division,
+                    'player': player,
+                    'teams': Team.objects.filter(division=division),
+                })
+            team = get_object_or_404(Team, id=team_id, division=division)
+        else:
+            # Coaches use their own team
             team = Team.objects.filter(coaches=request.user, division=division).first()
-            if team and team.player_set.count() < team.max_players and not player.team:
-                last_pick = DraftPick.objects.filter(division=division).order_by('-pick_number').first()
-                pick_number = last_pick.pick_number + 1 if last_pick else 1
-                round_number = (pick_number - 1) // Team.objects.filter(division=division).count() + 1
-                DraftPick.objects.create(
-                    division=division,
-                    team=team,
-                    player=player,
-                    pick_number=pick_number,
-                    round_number=round_number
-                )
-                player.team = team
-                player.draft_round = round_number
-                player.save()
-        except Team.DoesNotExist:
-            pass
+        
+        if team and team.player_set.count() < team.max_players and not player.team:
+            last_pick = DraftPick.objects.filter(division=division).order_by('-pick_number').first()
+            pick_number = last_pick.pick_number + 1 if last_pick else 1
+            round_number = (pick_number - 1) // Team.objects.filter(division=division).count() + 1
+            DraftPick.objects.create(
+                division=division,
+                team=team,
+                player=player,
+                pick_number=pick_number,
+                round_number=round_number
+            )
+            player.team = team
+            player.draft_round = round_number
+            player.save()
+            return redirect('dashboard_with_division', division_id=division_id)
+    
+    # If GET or team selection needed, show team selection for coordinators
+    if is_coordinator:
+        return render(request, 'league/select_team.html', {
+            'division': division,
+            'player': player,
+            'teams': Team.objects.filter(division=division),
+        })
     return redirect('dashboard_with_division', division_id=division_id)
 
 @login_required
