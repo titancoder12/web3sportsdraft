@@ -139,13 +139,13 @@ def dashboard(request, division_id=None):
     teams = Team.objects.filter(division=division).prefetch_related('player_set', 'coaches')
     
     # Sorting for Available Players
-    sort_by = request.GET.get('sort_by', 'last_name')  # Default to last_name
-    sort_order = request.GET.get('sort_order', 'asc')  # Default to ascending
+    sort_by = request.GET.get('sort_by', 'last_name')
+    sort_order = request.GET.get('sort_order', 'asc')
     order_prefix = '-' if sort_order == 'desc' else ''
     
     valid_sort_fields = ['first_name', 'last_name', 'birthdate']
     if sort_by not in valid_sort_fields:
-        sort_by = 'last_name'  # Fallback to default if invalid
+        sort_by = 'last_name'
     
     available_players = Player.objects.filter(
         division=division, team__isnull=True
@@ -155,23 +155,39 @@ def dashboard(request, division_id=None):
     is_coach = Team.objects.filter(coaches=request.user, division=division).exists()
     is_coordinator = division.coordinators.filter(id=request.user.id).exists()
 
-    # Handle undraft action
-    if request.method == 'POST' and 'undraft_player_id' in request.POST:
-        if not (is_coordinator or is_coach):
-            return render(request, 'league/no_permission.html')
-        
-        player_id = request.POST.get('undraft_player_id')
-        player = get_object_or_404(Player, id=player_id, division=division)
-        
-        if player.team:
-            if is_coach and not is_coordinator and not player.team.coaches.filter(id=request.user.id).exists():
+    # Handle POST actions
+    if request.method == 'POST':
+        if 'undraft_player_id' in request.POST:
+            if not (is_coordinator or is_coach):
                 return render(request, 'league/no_permission.html')
             
-            DraftPick.objects.filter(player=player, division=division).delete()
-            player.team = None
-            player.draft_round = None
-            player.save()
-        return redirect('dashboard_with_division', division_id=division_id)
+            player_id = request.POST.get('undraft_player_id')
+            player = get_object_or_404(Player, id=player_id, division=division)
+            
+            if player.team:
+                if is_coach and not is_coordinator and not player.team.coaches.filter(id=request.user.id).exists():
+                    return render(request, 'league/no_permission.html')
+                
+                DraftPick.objects.filter(player=player, division=division).delete()
+                player.team = None
+                player.draft_round = None
+                player.save()
+            return redirect('dashboard_with_division', division_id=division_id)
+        
+        # Handle delete action
+        elif 'delete_player_id' in request.POST:
+            if not is_coordinator:
+                return render(request, 'league/no_permission.html')
+            
+            player_id = request.POST.get('delete_player_id')
+            player = get_object_or_404(Player, id=player_id, division=division)
+            
+            # Delete associated User and Player
+            if player.user:
+                player.user.delete()  # This will cascade to delete the Player due to on_delete=models.CASCADE
+            else:
+                player.delete()  # If no User, just delete the Player
+            return redirect('dashboard_with_division', division_id=division_id)
 
     team_rosters = {team.id: list(team.player_set.all()) for team in teams}
 
@@ -184,8 +200,8 @@ def dashboard(request, division_id=None):
         'is_coordinator': is_coordinator,
         'divisions': Division.objects.all(),
         'team_rosters': team_rosters,
-        'sort_by': sort_by,  # Pass current sort field to template
-        'sort_order': sort_order,  # Pass current sort order to template
+        'sort_by': sort_by,
+        'sort_order': sort_order,
     }
     return render(request, 'league/dashboard.html', context)
 
