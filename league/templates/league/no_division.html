@@ -1,15 +1,27 @@
-{% extends 'league/base.html' %}
-
-{% block title %}No Division - Baseball Draft{% endblock %}
-
-{% block content %}
-    <h1>No Division Assigned</h1>
-    <p>Please select a division to proceed:</p>
-    <ul>
-        {% for division in divisions %}
-            <li><a href="{% url 'dashboard_with_division' division.id %}">{{ division }}</a></li>
-        {% empty %}
-            <li>No divisions available.</li>
-        {% endfor %}
-    </ul>
-{% endblock %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>No Division - Baseball Draft</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>No Division Assigned</h1>
+        <p>You are not assigned to any division as a coach or coordinator. Please select a division to view:</p>
+        {% if divisions %}
+            <select class="form-select w-50" onchange="location = this.value;">
+                <option value="">-- Select a Division --</option>
+                {% for div in divisions %}
+                    <option value="{% url 'dashboard_with_division' div.id %}">{{ div }}</option>
+                {% endfor %}
+            </select>
+        {% else %}
+            <p>No divisions exist yet. Contact an admin to set up divisions.</p>
+        {% endif %}
+        <form method="post" action="{% url 'logout' %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary mt-3">Logout</button>
+        </form>
+    </div>
+</body>
+</html>

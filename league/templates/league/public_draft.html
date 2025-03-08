@@ -1,18 +1,16 @@
-{% extends 'league/base.html' %}
-{% load league_tags %}
-
-{% block title %}Public Draft - {{ division }}{% endblock %}
-
-{% block extra_head %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Public Draft - {{ division }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-{% endblock %}
-
-{% block extra_css %}
     <style>
         .team-roster { max-height: 200px; overflow-y: auto; }
         .player-item { padding: 5px 0; }
         .table th, .table td { vertical-align: middle; }
         .last-updated { font-size: 0.9em; color: #6c757d; }
+        /* Animation for new rows */
         #draft-history-table tbody tr.new-pick {
             opacity: 0;
             animation: fadeIn 0.5s ease forwards;
@@ -22,101 +20,108 @@
             to { opacity: 1; }
         }
     </style>
-{% endblock %}
-
-{% block content %}
-    <!-- Header Section -->
-    <div class="mb-4">
-        <h1 class="display-5">Public Draft - {{ division }}</h1>
-        <p class="lead"><strong>Draft Status:</strong> {% if division.is_open %}Open{% else %}Closed{% endif %}</p>
-        <div class="d-flex flex-wrap gap-2 align-items-center">
-            <select class="form-select w-auto" onchange="location = this.value;">
-                {% for div in divisions %}
-                    <option value="{% url 'public_draft_with_division' div.id %}" {% if div == division %}selected{% endif %}>
-                        {{ div }}
-                    </option>
-                {% endfor %}
-            </select>
-            <a href="{% url 'dashboard_with_division' division.id %}" class="btn btn-primary">Go to Dashboard</a>
+</head>
+<body>
+    {% load league_tags %}
+    <div class="container mt-4">
+        <!-- Header Section -->
+        <div class="mb-4">
+            <h1 class="display-5">Public Draft - {{ division }}</h1>
+            <p class="lead"><strong>Draft Status:</strong> {% if division.is_open %}Open{% else %}Closed{% endif %}</p>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <select class="form-select w-auto" onchange="location = this.value;">
+                    {% for div in divisions %}
+                        <option value="{% url 'public_draft_with_division' div.id %}" {% if div == division %}selected{% endif %}>
+                            {{ div }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <a href="{% url 'dashboard_with_division' division.id %}" class="btn btn-primary">Go to Dashboard</a>
+            </div>
         </div>
-    </div>
 
-    <!-- Main Content -->
-    <div class="row">
-        <!-- Teams Section -->
-        <div class="col-md-6 mb-4">
-            <h2>Teams</h2>
-            <div class="accordion" id="teamsAccordionPublic">
-                {% for team in teams %}
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading{{ team.id }}">
-                            <button class="accordion-button {% if forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ team.id }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ team.id }}">
-                                {{ team.name }} ({{ team.player_set.count }}/{{ team.max_players }})
-                            </button>
-                        </h2>
-                        <div id="collapse{{ team.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ team.id }}" data-bs-parent="#teamsAccordionPublic">
-                            <div class="accordion-body">
-                                <p><strong>Coaches:</strong> 
-                                    {% for coach in team.coaches.all %}
-                                        {{ coach.username }}{% if not forloop.last %}, {% endif %}
-                                    {% empty %}
-                                        None
-                                    {% endfor %}
-                                </p>
-                                <div class="team-roster">
-                                    {% for player in team_rosters|get_item:team.id %}
-                                        <div class="player-item">
-                                            {{ player.first_name }} {{ player.last_name }}
-                                        </div>
-                                    {% empty %}
-                                        <p>No players</p>
-                                    {% endfor %}
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Teams Section (unchanged) -->
+            <div class="col-md-6 mb-4">
+                <h2>Teams</h2>
+                <div class="accordion" id="teamsAccordionPublic">
+                    {% for team in teams %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ team.id }}">
+                                <button class="accordion-button {% if forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ team.id }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ team.id }}">
+                                    {{ team.name }} ({{ team.player_set.count }}/{{ team.max_players }})
+                                </button>
+                            </h2>
+                            <div id="collapse{{ team.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ team.id }}" data-bs-parent="#teamsAccordionPublic">
+                                <div class="accordion-body">
+                                    <p><strong>Coaches:</strong> 
+                                        {% for coach in team.coaches.all %}
+                                            {{ coach.username }}{% if not forloop.last %}, {% endif %}
+                                        {% empty %}
+                                            None
+                                        {% endfor %}
+                                    </p>
+                                    <div class="team-roster">
+                                        {% for player in team_rosters|get_item:team.id %}
+                                            <div class="player-item">
+                                                {{ player.first_name }} {{ player.last_name }}
+                                            </div>
+                                        {% empty %}
+                                            <p>No players</p>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                </div>
             </div>
-        </div>
 
-        <!-- Draft History Section -->
-        <div class="col-md-6 mb-4">
-            <h2>Draft History</h2>
-            <p class="last-updated" id="last-updated">Last updated: Loading...</p>
-            <div class="table-responsive">
-                <table class="table table-bordered" id="draft-history-table">
-                    <thead>
-                        <tr>
-                            <th>Round</th>
-                            <th>Pick</th>
-                            <th>Team</th>
-                            <th>Player</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for pick in draft_picks %}
-                            <tr data-pick-id="{{ pick.id }}">
-                                <td>{% if pick.round_number == 999 %}Trade{% else %}{{ pick.round_number }}{% endif %}</td>
-                                <td>{{ pick.pick_number }}</td>
-                                <td>{{ pick.team.name }}</td>
-                                <td>{{ pick.player.first_name }} {{ pick.player.last_name }}</td>
-                            </tr>
-                        {% endfor %}
-                        {% if not draft_picks %}
+            <!-- Draft History Section -->
+            <div class="col-md-6 mb-4">
+                <h2>Draft History</h2>
+                <p class="last-updated" id="last-updated">Last updated: Loading...</p>
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="draft-history-table">
+                        <thead>
                             <tr>
-                                <td colspan="4" class="text-center">No players have been drafted yet.</td>
+                                <th>Round</th>
+                                <th>Pick</th>
+                                <th>Team</th>
+                                <th>Player</th>
                             </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {% for pick in draft_picks %}
+                                <tr data-pick-id="{{ pick.id }}">
+                                    <td>
+                                        {% if pick.round_number == 999 %}
+                                            Trade
+                                        {% else %}
+                                            {{ pick.round_number }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ pick.pick_number }}</td>
+                                    <td>{{ pick.team.name }}</td>
+                                    <td>{{ pick.player.first_name }} {{ pick.player.last_name }}</td>
+                                </tr>
+                            {% endfor %}
+                            {% if not draft_picks %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No players have been drafted yet.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-{% endblock %}
 
-{% block extra_js %}
     <script>
         $(document).ready(function() {
+            // Store current pick IDs to identify new ones
             let currentPickIds = new Set(
                 $('#draft-history-table tbody tr[data-pick-id]').map(function() {
                     return $(this).data('pick-id');
@@ -135,11 +140,13 @@
                         var tbody = $('#draft-history-table tbody');
                         var newPickIds = new Set();
 
+                        // Build new rows
                         var newRows = '';
                         if (data.draft_picks.length === 0) {
                             newRows = '<tr><td colspan="4" class="text-center">No players have been drafted yet.</td></tr>';
                         } else {
                             $.each(data.draft_picks, function(index, pick) {
+                                // Use pick_number as a unique identifier (assuming it's unique per division)
                                 var pickId = pick.pick_number;
                                 newPickIds.add(pickId);
                                 var isNew = !currentPickIds.has(pickId);
@@ -154,6 +161,7 @@
                             });
                         }
 
+                        // Update table and current IDs
                         tbody.html(newRows);
                         currentPickIds = newPickIds;
 
@@ -162,13 +170,18 @@
                     },
                     error: function(xhr, status, error) {
                         console.error('AJAX error:', status, error);
+                        console.error('Response:', xhr.responseText);
                         $('#last-updated').text('Last updated: Error fetching updates');
                     }
                 });
             }
 
+            // Initial update
             updateDraftHistory();
+
+            // Poll every 10 seconds
             setInterval(updateDraftHistory, 10000);
         });
     </script>
-{% endblock %}
+</body>
+</html>
