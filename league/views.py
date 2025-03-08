@@ -189,15 +189,21 @@ def coach_comment(request, player_id, division_id):
 def public_draft(request, division_id=None):
     if division_id:
         division = get_object_or_404(Division, id=division_id)
-        draft_picks = DraftPick.objects.filter(division=division)
     else:
-        draft_picks = DraftPick.objects.all()  # Show all if no division specified
-        division = None
+        division = Division.objects.first()
+        if not division:
+            return render(request, 'league/no_division.html', {'divisions': Division.objects.all()})
     
+    draft_picks = DraftPick.objects.filter(division=division)
+    teams = Team.objects.filter(division=division).prefetch_related('player_set', 'coaches')  # Optimize queries
+    team_rosters = {team.id: list(team.player_set.all()) for team in teams}
+
     context = {
         'division': division,
         'draft_picks': draft_picks,
-        'divisions': Division.objects.all(),  # For navigation
+        'divisions': Division.objects.all(),
+        'teams': teams,
+        'team_rosters': team_rosters,  # New context variable
     }
     return render(request, 'league/public_draft.html', context)
 

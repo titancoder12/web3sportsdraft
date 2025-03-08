@@ -1,56 +1,111 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Live Draft - Baseball Draft</title>
+    <title>Public Draft - {{ division }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <meta http-equiv="refresh" content="30">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <meta http-equiv="refresh" content="30"> <!-- Refresh every 30 seconds -->
+    <style>
+        .team-roster { max-height: 200px; overflow-y: auto; } /* Scrollable roster */
+        .player-item { padding: 5px 0; }
+        .table th, .table td { vertical-align: middle; }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center">Live Draft Results{% if division %} - {{ division }}{% endif %}</h1>
-        <div class="mb-3 text-center">
-            <select class="form-select d-inline-block w-auto" onchange="location = this.value;">
-                <option value="{% url 'public_draft' %}" {% if not division %}selected{% endif %}>All Divisions</option>
-                {% for div in divisions %}
-                    <option value="{% url 'public_draft_with_division' div.id %}" {% if div == division %}selected{% endif %}>
-                        {{ div }}
-                    </option>
-                {% endfor %}
-            </select>
+    {% load league_tags %}
+    <div class="container mt-4">
+        <!-- Header Section -->
+        <div class="mb-4">
+            <h1 class="display-5">Public Draft - {{ division }}</h1>
+            <p class="lead"><strong>Draft Status:</strong> {% if division.is_open %}Open{% else %}Closed{% endif %}</p>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <select class="form-select w-auto" onchange="location = this.value;">
+                    {% for div in divisions %}
+                        <option value="{% url 'public_draft_with_division' div.id %}" {% if div == division %}selected{% endif %}>
+                            {{ div }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <a href="{% url 'dashboard_with_division' division.id %}" class="btn btn-primary">Go to Dashboard</a>
+            </div>
         </div>
 
-        <table class="table table-bordered mt-3">
-            <thead>
-                <tr>
-                    <th>Round</th>
-                    <th>Pick</th>
-                    <th>Team</th>
-                    <th>Player</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for pick in draft_picks %}
-                    <tr>
-                        <td>
-                            {% if pick.round_number == 999 %}
-                                Trade
-                            {% else %}
-                                {{ pick.round_number }}
-                            {% endif %}
-                        </td>
-                        <td>{{ pick.pick_number }}</td>
-                        <td>{{ pick.team.name }}</td>
-                        <td>{{ pick.player.first_name }} {{ pick.player.last_name }}</td>
-                    </tr>
-                {% endfor %}
-                {% if not draft_picks %}
-                    <tr>
-                        <td colspan="4" class="text-center">No players have been drafted yet.</td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Teams Section -->
+            <div class="col-md-6 mb-4">
+                <h2>Teams</h2>
+                <div class="accordion" id="teamsAccordionPublic">
+                    {% for team in teams %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ team.id }}">
+                                <button class="accordion-button {% if forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ team.id }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ team.id }}">
+                                    {{ team.name }} ({{ team.player_set.count }}/{{ team.max_players }})
+                                </button>
+                            </h2>
+                            <div id="collapse{{ team.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ team.id }}" data-bs-parent="#teamsAccordionPublic">
+                                <div class="accordion-body">
+                                    <p><strong>Coaches:</strong> 
+                                        {% for coach in team.coaches.all %}
+                                            {{ coach.username }}{% if not forloop.last %}, {% endif %}
+                                        {% empty %}
+                                            None
+                                        {% endfor %}
+                                    </p>
+                                    <div class="team-roster">
+                                        {% for player in team_rosters|get_item:team.id %}
+                                            <div class="player-item">
+                                                {{ player.first_name }} {{ player.last_name }}
+                                            </div>
+                                        {% empty %}
+                                            <p>No players</p>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
 
+            <!-- Draft History Section -->
+            <div class="col-md-6 mb-4">
+                <h2>Draft History</h2>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Round</th>
+                                <th>Pick</th>
+                                <th>Team</th>
+                                <th>Player</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pick in draft_picks %}
+                                <tr>
+                                    <td>
+                                        {% if pick.round_number == 999 %}
+                                            Trade
+                                        {% else %}
+                                            {{ pick.round_number }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ pick.pick_number }}</td>
+                                    <td>{{ pick.team.name }}</td>
+                                    <td>{{ pick.player.first_name }} {{ pick.player.last_name }}</td>
+                                </tr>
+                            {% endfor %}
+                            {% if not draft_picks %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No players have been drafted yet.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 </html>
