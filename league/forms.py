@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Player, Division
+from .models import Player, Division, Team
 
 class PlayerForm(forms.ModelForm):
     class Meta:
@@ -53,10 +53,15 @@ class CoachCommentForm(forms.ModelForm):
 class PlayerSignupForm(UserCreationForm):
     first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
     last_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
+    division = forms.ModelChoiceField(
+        queryset=Division.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
+        empty_label="-- Select a Division --"
+    )
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'password1', 'password2']
+        fields = ['username', 'first_name', 'last_name', 'division', 'password1', 'password2']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
         }
@@ -69,6 +74,6 @@ class PlayerSignupForm(UserCreationForm):
                 user=user,
                 first_name=self.cleaned_data['first_name'],
                 last_name=self.cleaned_data['last_name'],
-                division=Division.objects.first()  # Default division; adjust as needed
+                division=self.cleaned_data['division']  # Assign selected division
             )
         return user
