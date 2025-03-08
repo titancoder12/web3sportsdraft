@@ -18,6 +18,7 @@
                 {% endfor %}
             </select>
         </div>
+
         <table class="table table-bordered mt-3">
             <thead>
                 <tr>
@@ -30,7 +31,13 @@
             <tbody>
                 {% for pick in draft_picks %}
                     <tr>
-                        <td>{{ pick.round_number }}</td>
+                        <td>
+                            {% if pick.round_number == 999 %}
+                                Trade
+                            {% else %}
+                                {{ pick.round_number }}
+                            {% endif %}
+                        </td>
                         <td>{{ pick.pick_number }}</td>
                         <td>{{ pick.team.name }}</td>
                         <td>{{ pick.player.first_name }} {{ pick.player.last_name }}</td>
@@ -43,6 +50,7 @@
                 {% endif %}
             </tbody>
         </table>
+
     </div>
 </body>
 </html>

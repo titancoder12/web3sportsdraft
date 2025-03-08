@@ -20,5 +20,6 @@ urlpatterns = [
     path('comment/<int:player_id>/<int:division_id>/', views.coach_comment, name='coach_comment'),
     path('draft/', views.public_draft, name='public_draft'),
     path('draft/<int:division_id>/', views.public_draft, name='public_draft_with_division'),
-    path('toggle-draft/<int:division_id>/', views.toggle_draft_status, name='toggle_draft_status'),  # New route
+    path('toggle-draft/<int:division_id>/', views.toggle_draft_status, name='toggle_draft_status'),
+    path('trade/<int:division_id>/', views.trade_players, name='trade_players'),  # New route
 ]

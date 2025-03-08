@@ -11,23 +11,22 @@ def dashboard(request, division_id=None):
         return redirect('player_profile')
     
     if division_id:
-        # If division_id is provided, load that division
         division = get_object_or_404(Division, id=division_id)
     else:
-        # Try to default to a division where the user is a coach
         division = Division.objects.filter(teams__coaches=request.user).first()
         if not division:
-            # If not a coach, try a division where the user is a coordinator
             division = Division.objects.filter(coordinators=request.user).first()
         if not division:
-            # If neither, show a fallback (e.g., all divisions or a message)
             return render(request, 'league/no_division.html', {'divisions': Division.objects.all()})
     
-    teams = Team.objects.filter(division=division)
+    teams = Team.objects.filter(division=division).prefetch_related('player_set', 'coaches')  # Optimize queries
     available_players = Player.objects.filter(division=division, team__isnull=True)
     draft_picks = DraftPick.objects.filter(division=division)
     is_coach = Team.objects.filter(coaches=request.user, division=division).exists()
     is_coordinator = division.coordinators.filter(id=request.user.id).exists()
+
+    # Prepare team rosters
+    team_rosters = {team.id: list(team.player_set.all()) for team in teams}
 
     context = {
         'division': division,
@@ -37,6 +36,7 @@ def dashboard(request, division_id=None):
         'is_coach': is_coach,
         'is_coordinator': is_coordinator,
         'divisions': Division.objects.all(),
+        'team_rosters': team_rosters,  # New context variable
     }
     return render(request, 'league/dashboard.html', context)
 
@@ -196,3 +196,75 @@ def toggle_draft_status(request, division_id):
         'division': division,
     }
     return render(request, 'league/toggle_draft.html', context)
+
+# league/views.py
+@login_required
+def trade_players(request, division_id):
+    division = get_object_or_404(Division, id=division_id)
+    
+    # Restrict to coordinators only
+    if not division.coordinators.filter(id=request.user.id).exists():
+        return render(request, 'league/no_permission.html')
+    
+    teams = Team.objects.filter(division=division)
+    
+    if request.method == 'POST':
+        player1_id = request.POST.get('player1_id')
+        player2_id = request.POST.get('player2_id', None)  # Optional for 1-for-1 or 1-for-none trades
+        
+        player1 = get_object_or_404(Player, id=player1_id, division=division)
+        player2 = Player.objects.filter(id=player2_id, division=division).first() if player2_id else None
+        
+        # Validate teams and roster limits
+        team1 = player1.team
+        if not team1 or team1.division != division:
+            return render(request, 'league/trade_error.html', {'message': 'Player 1 is not on a team in this division.'})
+        
+        team2 = player2.team if player2 else None
+        if player2 and (not team2 or team2.division != division):
+            return render(request, 'league/trade_error.html', {'message': 'Player 2 is not on a team in this division.'})
+        
+        # Check roster limits after trade
+        if team2 and team2.player_set.count() >= team2.max_players:
+            return render(request, 'league/trade_error.html', {'message': f'{team2.name} is already at max roster size.'})
+        if team1 and player2 and team1.player_set.count() >= team1.max_players:
+            return render(request, 'league/trade_error.html', {'message': f'{team1.name} is already at max roster size.'})
+        
+        # Execute the trade
+        last_pick = DraftPick.objects.filter(division=division).order_by('-pick_number').first()
+        pick_number = last_pick.pick_number + 1 if last_pick else 1
+        
+        # Trade Player 1 to Team 2 (if Team 2 exists)
+        if team2:
+            player1.team = team2
+            player1.save()
+            DraftPick.objects.create(
+                division=division,
+                team=team2,
+                player=player1,
+                pick_number=pick_number,
+                round_number=999  # Special round for trades
+            )
+            pick_number += 1
+        
+        # Trade Player 2 to Team 1 (if Player 2 exists)
+        if player2:
+            player2.team = team1
+            player2.save()
+            DraftPick.objects.create(
+                division=division,
+                team=team1,
+                player=player2,
+                pick_number=pick_number,
+                round_number=999  # Special round for trades
+            )
+        
+        return redirect('dashboard_with_division', division_id=division_id)
+    
+    # GET request: Show trade form
+    context = {
+        'division': division,
+        'teams': teams,
+        'players': Player.objects.filter(division=division, team__isnull=False).order_by('team__name', 'last_name', 'first_name'),
+    }
+    return render(request, 'league/trade_players.html', context)
