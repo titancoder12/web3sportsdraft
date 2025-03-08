@@ -1,10 +1,121 @@
 # league/views.py
-# league/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+import csv
+from io import TextIOWrapper
+from datetime import datetime
 from .models import Team, Player, DraftPick, Division
-from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm
+from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm, PlayerCSVUploadForm
+from django.contrib.auth.models import User
+
+@login_required
+def import_players(request):
+    # Restrict to superusers or coordinators
+    if not (request.user.is_superuser or Division.objects.filter(coordinators=request.user).exists()):
+        messages.error(request, "You do not have permission to import players.")
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = PlayerCSVUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            csv_file = TextIOWrapper(request.FILES['csv_file'].file, encoding='utf-8')
+            division = form.cleaned_data['division']
+            reader = csv.DictReader(csv_file)
+
+            # Field mapping
+            field_mapping = {
+                'first_name': 'first_name',
+                'last_name': 'last_name',
+                'birthdate': 'birthdate',
+                'grip_strength': 'grip_strength',
+                'lateral_jump': 'lateral_jump',
+                'shot_put': 'shot_put',
+                'five_ten_five_yards': 'five_ten_five_yards',
+                'ten_yards': 'ten_yards',
+                'catcher_pop': 'catcher_pop',
+                'fielding_notes': 'fielding_notes',
+                'exit_velo': 'exit_velo',
+                'bat_speed': 'bat_speed',
+                'pitching_comment': 'pitching_comment',
+                'parents_volunteering': 'parents_volunteering',
+                'other_activities': 'other_activities',
+                'volunteering_comments': 'volunteering_comments',
+                'primary_positions': 'primary_positions',
+                'secondary_positions': 'secondary_positions',
+                'throwing': 'throwing',
+                'batting': 'batting',
+                'school': 'school',
+                'grade_level': 'grade_level',
+                'travel_teams': 'travel_teams',
+                'travel_why': 'travel_why',
+                'travel_years': 'travel_years',
+                'personal_comments': 'personal_comments',
+                'past_level': 'past_level',
+                'travel_before': 'travel_before',
+                'last_team': 'last_team',
+                'last_league': 'last_league',
+                'conflict_description': 'conflict_description',
+                'last_team_coach': 'last_team_coach',
+            }
+
+            try:
+                for row in reader:
+                    # Generate username
+                    base_username = (row['first_name'] + row['last_name']).lower()
+                    username = base_username
+                    counter = 1
+                    while User.objects.filter(username=username).exists():
+                        username = f"{base_username}{counter}"
+                        counter += 1
+
+                    # Generate default password from birthdate
+                    birthdate_str = row.get('birthdate', '')
+                    if birthdate_str:
+                        try:
+                            birthdate = datetime.strptime(birthdate_str, '%Y-%m-%d')
+                            default_password = birthdate.strftime('%Y%m%d')  # e.g., "20100515"
+                        except ValueError:
+                            messages.warning(request, f"Invalid birthdate format for {row['first_name']} {row['last_name']}, skipping.")
+                            continue
+                    else:
+                        messages.warning(request, f"No birthdate for {row['first_name']} {row['last_name']}, skipping.")
+                        continue
+
+                    # Create User
+                    user = User.objects.create_user(
+                        username=username,
+                        password=default_password,
+                        first_name=row['first_name'],
+                        last_name=row['last_name']
+                    )
+
+                    # Prepare player data
+                    player_data = {'division': division}
+                    for csv_field, model_field in field_mapping.items():
+                        if csv_field in row and row[csv_field]:
+                            if csv_field == 'birthdate':
+                                player_data[model_field] = birthdate
+                            elif csv_field in ['grip_strength', 'lateral_jump', 'shot_put', 'five_ten_five_yards', 'ten_yards', 'catcher_pop', 'exit_velo', 'bat_speed']:
+                                player_data[model_field] = float(row[csv_field]) if row[csv_field] else None
+                            elif csv_field == 'travel_years':
+                                player_data[model_field] = int(row[csv_field]) if row[csv_field] else None
+                            else:
+                                player_data[model_field] = row[csv_field]
+
+                    # Create Player
+                    Player.objects.create(user=user, **player_data)
+                    messages.success(request, f"Imported {row['first_name']} {row['last_name']} as {username}")
+
+                return redirect('dashboard')
+            except Exception as e:
+                messages.error(request, f"Error importing players: {str(e)}")
+    else:
+        form = PlayerCSVUploadForm()
+
+    return render(request, 'league/import_players.html', {'form': form})
+
 
 @login_required
 def player_detail(request, player_id):
@@ -300,3 +411,4 @@ def trade_players(request, division_id):
         'players': Player.objects.filter(division=division, team__isnull=False).order_by('team__name', 'last_name', 'first_name'),
     }
     return render(request, 'league/trade_players.html', context)
+

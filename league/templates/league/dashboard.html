@@ -31,6 +31,7 @@
                 {% if is_coordinator %}
                     <a href="{% url 'toggle_draft_status' division.id %}" class="btn btn-warning">Toggle Draft</a>
                     <a href="{% url 'trade_players' division.id %}" class="btn btn-info">Trade Players</a>
+                    <a href="{% url 'import_players' %}" class="btn btn-success">Import Players</a>
                 {% endif %}
                 <form method="post" action="{% url 'logout' %}" class="d-inline">
                     {% csrf_token %}

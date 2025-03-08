@@ -77,3 +77,13 @@ class PlayerSignupForm(UserCreationForm):
                 division=self.cleaned_data['division']  # Assign selected division
             )
         return user
+    
+
+class PlayerCSVUploadForm(forms.Form):
+    csv_file = forms.FileField(label="Upload CSV File", widget=forms.FileInput(attrs={'class': 'form-control'}))
+    division = forms.ModelChoiceField(
+        queryset=Division.objects.all(),
+        label="Select Division",
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        empty_label="-- Select a Division --"
+    )
