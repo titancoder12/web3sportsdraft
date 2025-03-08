@@ -61,10 +61,11 @@
                                             None
                                         {% endfor %}
                                     </p>
-                                    <div class="team-roster">
+                                      <!-- In the Teams accordion -->
+                                      <div class="team-roster">
                                         {% for player in team_rosters|get_item:team.id %}
                                             <div class="player-item">
-                                                <span>{{ player.first_name }} {{ player.last_name }}</span>
+                                                <a href="{% url 'player_detail' player.id %}">{{ player.first_name }} {{ player.last_name }}</a>
                                                 {% if is_coordinator or is_coach and team.coaches.all|length and request.user in team.coaches.all %}
                                                     <form method="post" action="{% url 'dashboard_with_division' division.id %}" class="d-inline">
                                                         {% csrf_token %}
@@ -76,7 +77,7 @@
                                         {% empty %}
                                             <p>No players</p>
                                         {% endfor %}
-                                    </div>
+                                      </div>
                                 </div>
                             </div>
                         </div>
@@ -99,8 +100,9 @@
                         <tbody>
                             {% for player in players %}
                                 <tr>
-                                    <td>{{ player.first_name }}</td>
-                                    <td>{{ player.last_name }}</td>
+                                  <!-- In the Available Players table -->
+                                    <td><a href="{% url 'player_detail' player.id %}">{{ player.first_name }}</a></td>
+                                    <td>{{ player.last_name }}</td>  
                                     <td>{{ player.age|default:"" }}</td>
                                     <td>{{ player.position|default:"" }}</td>
                                     <td>{{ player.rating }}</td>

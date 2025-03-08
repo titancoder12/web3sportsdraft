@@ -12,8 +12,8 @@ class League(models.Model):
 class Division(models.Model):
     name = models.CharField(max_length=100)
     league = models.ForeignKey(League, on_delete=models.CASCADE, related_name='divisions')
-    is_open = models.BooleanField(default=False)  # Draft status
-    coordinators = models.ManyToManyField(User, related_name='coordinated_divisions', blank=True)  # Coordinators
+    is_open = models.BooleanField(default=False)
+    coordinators = models.ManyToManyField(User, related_name='coordinated_divisions', blank=True)
 
     def __str__(self):
         return f"{self.league.name} - {self.name}"
@@ -39,6 +39,40 @@ class Player(models.Model):
     description = models.TextField(blank=True)
     coach_comments = models.TextField(blank=True)
     division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='players')
+
+    # Performance Evaluations
+    grip_strength = models.FloatField(null=True, blank=True)
+    lateral_jump = models.FloatField(null=True, blank=True)
+    shot_put = models.FloatField(null=True, blank=True)
+    five_ten_five_yards = models.FloatField(null=True, blank=True)  # 5-10-5 Yards
+    ten_yards = models.FloatField(null=True, blank=True)
+    catcher_pop = models.FloatField(null=True, blank=True)
+    fielding_notes = models.TextField(blank=True)
+    exit_velo = models.FloatField(null=True, blank=True)
+    bat_speed = models.FloatField(null=True, blank=True)
+    pitching_comment = models.TextField(blank=True)
+
+    # Personal Details
+    birthdate = models.DateField(null=True, blank=True)
+    parents_volunteering = models.CharField(max_length=255, blank=True)
+    other_activities = models.CharField(max_length=255, blank=True)
+    volunteering_comments = models.TextField(blank=True)
+    primary_positions = models.CharField(max_length=255, blank=True)
+    secondary_positions = models.CharField(max_length=255, blank=True)
+    throwing = models.CharField(max_length=50, blank=True)  # e.g., "Right", "Left"
+    batting = models.CharField(max_length=50, blank=True)  # e.g., "Right", "Left"
+    school = models.CharField(max_length=100, blank=True)
+    grade_level = models.CharField(max_length=50, blank=True)
+    travel_teams = models.CharField(max_length=255, blank=True)
+    travel_why = models.CharField(max_length=255, blank=True)
+    travel_years = models.IntegerField(null=True, blank=True)
+    personal_comments = models.TextField(blank=True)
+    past_level = models.CharField(max_length=100, blank=True)
+    travel_before = models.CharField(max_length=255, blank=True)
+    last_team = models.CharField(max_length=100, blank=True)
+    last_league = models.CharField(max_length=100, blank=True)
+    conflict_description = models.TextField(blank=True)
+    last_team_coach = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.division})"

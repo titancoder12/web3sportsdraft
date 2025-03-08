@@ -7,6 +7,11 @@ from .models import Team, Player, DraftPick, Division
 from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm
 
 @login_required
+def player_detail(request, player_id):
+    player = get_object_or_404(Player, id=player_id)
+    return render(request, 'league/player_detail.html', {'player': player})
+
+@login_required
 def dashboard(request, division_id=None):
     if hasattr(request.user, 'player_profile'):
         return redirect('player_profile')

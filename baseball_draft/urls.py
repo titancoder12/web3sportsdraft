@@ -21,5 +21,6 @@ urlpatterns = [
     path('draft/', views.public_draft, name='public_draft'),
     path('draft/<int:division_id>/', views.public_draft, name='public_draft_with_division'),
     path('toggle-draft/<int:division_id>/', views.toggle_draft_status, name='toggle_draft_status'),
-    path('trade/<int:division_id>/', views.trade_players, name='trade_players'),  # New route
+    path('trade/<int:division_id>/', views.trade_players, name='trade_players'),
+    path('player/<int:player_id>/', views.player_detail, name='player_detail'),  # New route
 ]
