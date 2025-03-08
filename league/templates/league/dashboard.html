@@ -5,10 +5,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-        .team-roster { max-height: 200px; overflow-y: auto; } /* Scrollable roster */
+        .team-roster { max-height: 200px; overflow-y: auto; }
         .player-item { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
         .btn-sm { margin-left: 10px; }
         .table th, .table td { vertical-align: middle; }
+        .sort-arrow { font-size: 0.8em; margin-left: 5px; }
     </style>
 </head>
 <body>
@@ -42,7 +43,7 @@
 
         <!-- Main Content -->
         <div class="row">
-            <!-- Teams Section -->
+            <!-- Teams Section (unchanged) -->
             <div class="col-md-6 mb-4">
                 <h2>Teams</h2>
                 <div class="accordion" id="teamsAccordion">
@@ -62,8 +63,7 @@
                                             None
                                         {% endfor %}
                                     </p>
-                                      <!-- In the Teams accordion -->
-                                      <div class="team-roster">
+                                    <div class="team-roster">
                                         {% for player in team_rosters|get_item:team.id %}
                                             <div class="player-item">
                                                 <a href="{% url 'player_detail' player.id %}">{{ player.first_name }} {{ player.last_name }}</a>
@@ -78,7 +78,7 @@
                                         {% empty %}
                                             <p>No players</p>
                                         {% endfor %}
-                                      </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -90,27 +90,47 @@
             <div class="col-md-6 mb-4">
                 <h2>Available Players</h2>
                 <div class="table-responsive">
-                    <table class="table table-bordered" table-sm>
+                    <table class="table table-bordered table-sm">
                         <thead>
                             <tr>
-                                <th>First Name</th><th>Last Name</th><th>Age</th><th>Position</th><th>Rating</th>
-                                {% if is_coach %}<th>Description</th><th>Coach Comments</th>{% endif %}
-                                <th>Action</th><th>Comment</th>
+                                <th>
+                                    <a href="{% url 'dashboard_with_division' division.id %}?sort_by=first_name&sort_order={% if sort_by == 'first_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none">
+                                        First Name
+                                        {% if sort_by == 'first_name' %}
+                                            <span class="sort-arrow">{% if sort_order == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="{% url 'dashboard_with_division' division.id %}?sort_by=last_name&sort_order={% if sort_by == 'last_name' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none">
+                                        Last Name
+                                        {% if sort_by == 'last_name' %}
+                                            <span class="sort-arrow">{% if sort_order == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="{% url 'dashboard_with_division' division.id %}?sort_by=birthdate&sort_order={% if sort_by == 'birthdate' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none">
+                                        Birthdate
+                                        {% if sort_by == 'birthdate' %}
+                                            <span class="sort-arrow">{% if sort_order == 'asc' %}▲{% else %}▼{% endif %}</span>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>Primary Position</th>
+                                <th>Coach Comments</th>
+                                <th>Action</th>
+                                <th>Comment</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for player in players %}
                                 <tr>
-                                  <!-- In the Available Players table -->
                                     <td><a href="{% url 'player_detail' player.id %}">{{ player.first_name }}</a></td>
-                                    <td>{{ player.last_name }}</td>  
-                                    <td>{{ player.age|default:"" }}</td>
-                                    <td>{{ player.position|default:"" }}</td>
-                                    <td>{{ player.rating }}</td>
-                                    {% if is_coach %}
-                                        <td>{{ player.description|default:"No description" }}</td>
-                                        <td>{{ player.coach_comments|default:"No comments" }}</td>
-                                    {% endif %}
+                                    <td>{{ player.last_name }}</td>
+                                    <td>{{ player.birthdate|date:"Y-m-d"|default:"N/A" }}</td>
+                                    <td>{{ player.primary_positions|default:"N/A" }}</td>
+                                    <td>{{ player.coach_comments|default:"N/A" }}</td>
                                     <td>
                                         {% if division.is_open and is_coordinator or is_coach %}
                                             {% if is_coordinator %}
@@ -137,7 +157,7 @@
                 </div>
             </div>
 
-            <!-- Draft History Section -->
+            <!-- Draft History Section (unchanged) -->
             <div class="col-md-12">
                 <h2>Draft History</h2>
                 <div class="table-responsive">
