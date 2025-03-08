@@ -139,10 +139,10 @@ def add_player(request, division_id=None):
 
 @login_required
 def player_profile(request):
-    try:
-        player = request.user.player_profile
-    except Player.DoesNotExist:
-        return render(request, 'league/no_profile.html')
+    if not hasattr(request.user, 'player_profile'):
+        return redirect('dashboard')  # Redirect non-players to dashboard
+    
+    player = request.user.player_profile
     
     if request.method == 'POST':
         form = PlayerProfileForm(request.POST, instance=player)
@@ -152,11 +152,10 @@ def player_profile(request):
     else:
         form = PlayerProfileForm(instance=player)
     
-    context = {
-        'form': form,
+    return render(request, 'league/player_profile.html', {
         'player': player,
-    }
-    return render(request, 'league/player_profile.html', context)
+        'form': form,
+    })
 
 # league/views.py (relevant section)
 def signup(request):
