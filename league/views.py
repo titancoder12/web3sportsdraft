@@ -1,14 +1,14 @@
 # league/views.py
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login
+from django.http import JsonResponse  # Ensure this line is present
+from .models import Team, Player, DraftPick, Division
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm, PlayerCSVUploadForm
+from django.contrib.auth.models import User
 import csv
 from io import TextIOWrapper
 from datetime import datetime
-from .models import Team, Player, DraftPick, Division
-from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm, PlayerCSVUploadForm
-from django.contrib.auth.models import User
+from django.contrib import messages
 
 @login_required
 def import_players(request):
@@ -328,6 +328,7 @@ def coach_comment(request, player_id, division_id):
     }
     return render(request, 'league/coach_comment.html', context)
 
+# league/views.py
 def public_draft(request, division_id=None):
     if division_id:
         division = get_object_or_404(Division, id=division_id)
@@ -336,16 +337,32 @@ def public_draft(request, division_id=None):
         if not division:
             return render(request, 'league/no_division.html', {'divisions': Division.objects.all()})
     
-    draft_picks = DraftPick.objects.filter(division=division)
-    teams = Team.objects.filter(division=division).prefetch_related('player_set', 'coaches')  # Optimize queries
+    teams = Team.objects.filter(division=division).prefetch_related('player_set', 'coaches')
     team_rosters = {team.id: list(team.player_set.all()) for team in teams}
+    draft_picks = DraftPick.objects.filter(division=division)
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        draft_picks_data = [
+            {
+                'id': pick.id,  # Added for potential future use
+                'round_number': pick.round_number if pick.round_number != 999 else 'Trade',
+                'pick_number': pick.pick_number,
+                'team_name': pick.team.name,
+                'player_name': f"{pick.player.first_name} {pick.player.last_name}"
+            }
+            for pick in draft_picks
+        ]
+        return JsonResponse({
+            'draft_picks': draft_picks_data,
+            'last_updated': datetime.now().isoformat()
+        })
 
     context = {
         'division': division,
         'draft_picks': draft_picks,
         'divisions': Division.objects.all(),
         'teams': teams,
-        'team_rosters': team_rosters,  # New context variable
+        'team_rosters': team_rosters,
     }
     return render(request, 'league/public_draft.html', context)
 

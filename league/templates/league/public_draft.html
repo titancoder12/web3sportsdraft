@@ -4,11 +4,21 @@
     <title>Public Draft - {{ division }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <meta http-equiv="refresh" content="30"> <!-- Refresh every 30 seconds -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        .team-roster { max-height: 200px; overflow-y: auto; } /* Scrollable roster */
+        .team-roster { max-height: 200px; overflow-y: auto; }
         .player-item { padding: 5px 0; }
         .table th, .table td { vertical-align: middle; }
+        .last-updated { font-size: 0.9em; color: #6c757d; }
+        /* Animation for new rows */
+        #draft-history-table tbody tr.new-pick {
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -32,7 +42,7 @@
 
         <!-- Main Content -->
         <div class="row">
-            <!-- Teams Section -->
+            <!-- Teams Section (unchanged) -->
             <div class="col-md-6 mb-4">
                 <h2>Teams</h2>
                 <div class="accordion" id="teamsAccordionPublic">
@@ -71,8 +81,9 @@
             <!-- Draft History Section -->
             <div class="col-md-6 mb-4">
                 <h2>Draft History</h2>
+                <p class="last-updated" id="last-updated">Last updated: Loading...</p>
                 <div class="table-responsive">
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" id="draft-history-table">
                         <thead>
                             <tr>
                                 <th>Round</th>
@@ -83,7 +94,7 @@
                         </thead>
                         <tbody>
                             {% for pick in draft_picks %}
-                                <tr>
+                                <tr data-pick-id="{{ pick.id }}">
                                     <td>
                                         {% if pick.round_number == 999 %}
                                             Trade
@@ -107,5 +118,70 @@
             </div>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function() {
+            // Store current pick IDs to identify new ones
+            let currentPickIds = new Set(
+                $('#draft-history-table tbody tr[data-pick-id]').map(function() {
+                    return $(this).data('pick-id');
+                }).get()
+            );
+
+            function updateDraftHistory() {
+                console.log("Fetching draft updates...");
+                $.ajax({
+                    url: '{% url "public_draft_with_division" division.id %}',
+                    type: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log("Received data:", data);
+                        var tbody = $('#draft-history-table tbody');
+                        var newPickIds = new Set();
+
+                        // Build new rows
+                        var newRows = '';
+                        if (data.draft_picks.length === 0) {
+                            newRows = '<tr><td colspan="4" class="text-center">No players have been drafted yet.</td></tr>';
+                        } else {
+                            $.each(data.draft_picks, function(index, pick) {
+                                // Use pick_number as a unique identifier (assuming it's unique per division)
+                                var pickId = pick.pick_number;
+                                newPickIds.add(pickId);
+                                var isNew = !currentPickIds.has(pickId);
+                                newRows += (
+                                    '<tr data-pick-id="' + pickId + '" ' + (isNew ? 'class="new-pick"' : '') + '>' +
+                                        '<td>' + (pick.round_number === 'Trade' ? 'Trade' : pick.round_number) + '</td>' +
+                                        '<td>' + pick.pick_number + '</td>' +
+                                        '<td>' + pick.team_name + '</td>' +
+                                        '<td>' + pick.player_name + '</td>' +
+                                    '</tr>'
+                                );
+                            });
+                        }
+
+                        // Update table and current IDs
+                        tbody.html(newRows);
+                        currentPickIds = newPickIds;
+
+                        var lastUpdated = new Date(data.last_updated).toLocaleTimeString();
+                        $('#last-updated').text('Last updated: ' + lastUpdated);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX error:', status, error);
+                        console.error('Response:', xhr.responseText);
+                        $('#last-updated').text('Last updated: Error fetching updates');
+                    }
+                });
+            }
+
+            // Initial update
+            updateDraftHistory();
+
+            // Poll every 10 seconds
+            setInterval(updateDraftHistory, 10000);
+        });
+    </script>
 </body>
 </html>
