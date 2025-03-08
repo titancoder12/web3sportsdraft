@@ -7,6 +7,7 @@
 <body>
     <div class="container mt-3">
         <h1>Youth Baseball Draft - {{ division }}</h1>
+        <p><strong>Draft Status:</strong> {% if division.is_open %}Open{% else %}Closed{% endif %}</p>
         <div class="mb-3">
             <select class="form-select d-inline-block w-auto" onchange="location = this.value;">
                 {% for div in divisions %}
@@ -17,6 +18,9 @@
             </select>
             <a href="{% url 'add_player_with_division' division.id %}" class="btn btn-success">Add New Player</a>
             <a href="{% url 'player_profile' %}" class="btn btn-info">My Profile</a>
+            {% if request.user in division.coordinators.all %}
+                <a href="{% url 'toggle_draft_status' division.id %}" class="btn btn-warning">Toggle Draft Status</a>
+            {% endif %}
             <form method="post" action="{% url 'logout' %}" style="display: inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-secondary">Logout</button>

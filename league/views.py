@@ -33,12 +33,16 @@ def dashboard(request, division_id=None):
     }
     return render(request, 'league/dashboard.html', context)
 
-# league/views.py
+# league/views.py (relevant section)
 @login_required
 def make_pick(request, player_id, division_id):
     if request.method == 'POST':
         player = get_object_or_404(Player, id=player_id, division_id=division_id)
         division = get_object_or_404(Division, id=division_id)
+        
+        if not division.is_open:  # Check if draft is open
+            return render(request, 'league/draft_closed.html', {'division': division})
+        
         try:
             team = Team.objects.filter(coaches=request.user, division=division).first()
             if team and team.player_set.count() < team.max_players and not player.team:
@@ -141,3 +145,21 @@ def public_draft(request, division_id=None):
         'divisions': Division.objects.all(),  # For navigation
     }
     return render(request, 'league/public_draft.html', context)
+
+# league/views.py
+@login_required
+def toggle_draft_status(request, division_id):
+    division = get_object_or_404(Division, id=division_id)
+    # Check if user is a coordinator
+    if not division.coordinators.filter(id=request.user.id).exists():
+        return render(request, 'league/no_permission.html')
+    
+    if request.method == 'POST':
+        division.is_open = not division.is_open  # Toggle status
+        division.save()
+        return redirect('dashboard_with_division', division_id=division_id)
+    
+    context = {
+        'division': division,
+    }
+    return render(request, 'league/toggle_draft.html', context)

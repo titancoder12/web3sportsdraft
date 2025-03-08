@@ -10,10 +10,12 @@ admin.site.index_title = "Welcome to Baseball League Admin"
 class LeagueAdmin(admin.ModelAdmin):
     list_display = ('name',)
 
+# league/admin.py
 @admin.register(Division)
 class DivisionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'league')
-    list_filter = ('league',)
+    list_display = ('name', 'league', 'is_open')
+    list_filter = ('league', 'is_open')
+    filter_horizontal = ('coordinators',)  # For easy coordinator assignment
 
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
