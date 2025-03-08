@@ -7,10 +7,20 @@
 <body>
     <div class="container mt-5">
         <h1>No Division Assigned</h1>
-        <p>You are not assigned to any division. Contact an admin to set up your teams.</p>
+        <p>You are not assigned to any division as a coach or coordinator. Please select a division to view:</p>
+        {% if divisions %}
+            <select class="form-select w-50" onchange="location = this.value;">
+                <option value="">-- Select a Division --</option>
+                {% for div in divisions %}
+                    <option value="{% url 'dashboard_with_division' div.id %}">{{ div }}</option>
+                {% endfor %}
+            </select>
+        {% else %}
+            <p>No divisions exist yet. Contact an admin to set up divisions.</p>
+        {% endif %}
         <form method="post" action="{% url 'logout' %}" style="display: inline;">
             {% csrf_token %}
-            <button type="submit" class="btn btn-secondary">Logout</button>
+            <button type="submit" class="btn btn-secondary mt-3">Logout</button>
         </form>
     </div>
 </body>

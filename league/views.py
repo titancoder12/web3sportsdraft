@@ -11,25 +11,31 @@ def dashboard(request, division_id=None):
         return redirect('player_profile')
     
     if division_id:
+        # If division_id is provided, load that division
         division = get_object_or_404(Division, id=division_id)
     else:
+        # Try to default to a division where the user is a coach
         division = Division.objects.filter(teams__coaches=request.user).first()
         if not division:
-            return render(request, 'league/no_division.html')
+            # If not a coach, try a division where the user is a coordinator
+            division = Division.objects.filter(coordinators=request.user).first()
+        if not division:
+            # If neither, show a fallback (e.g., all divisions or a message)
+            return render(request, 'league/no_division.html', {'divisions': Division.objects.all()})
     
     teams = Team.objects.filter(division=division)
     available_players = Player.objects.filter(division=division, team__isnull=True)
     draft_picks = DraftPick.objects.filter(division=division)
     is_coach = Team.objects.filter(coaches=request.user, division=division).exists()
-    is_coordinator = division.coordinators.filter(id=request.user.id).exists()  # Add coordinator check
+    is_coordinator = division.coordinators.filter(id=request.user.id).exists()
 
     context = {
         'division': division,
         'teams': teams,
         'players': available_players,
         'draft_picks': draft_picks,
-        'is_coach': is_coach,  # Already computed in view
-        'is_coordinator': is_coordinator,  # New variable
+        'is_coach': is_coach,
+        'is_coordinator': is_coordinator,
         'divisions': Division.objects.all(),
     }
     return render(request, 'league/dashboard.html', context)
