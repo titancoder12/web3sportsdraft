@@ -1,30 +1,74 @@
-<!-- league/templates/league/login.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login - Baseball Draft</title>
+    <title>Login - Web3Sports Draft</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% load static %}
+    <style>
+        body {
+            background-color: #E6ECEF; /* Light grayish-blue background */
+            min-height: 100vh;
+        }
+        .marketing-section {
+            background-color: #FFFFFF; /* White to contrast with body */
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+        .login-form {
+            background-color: #FFFFFF; /* White for form */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .logo-img {
+            max-width: 200px;
+            height: auto;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* More prominent shadow */
+        }
+        a {
+            color: #1A2A44; /* Dark blue from logo for links */
+        }
+        a:hover {
+            color: #2C4A7A; /* Slightly lighter blue on hover */
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Login</h1>
-        {% if form.errors %}
-            <p class="text-danger text-center">Your username and password didn't match.</p>
-        {% endif %}
-        <form method="post" action="{% url 'login' %}" class="w-50 mx-auto">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary w-100">Login</button>
-            <input type="hidden" name="next" value="{{ next }}" />
-        </form>
-
-        <!-- league/templates/league/login.html -->
-        <p class="text-center mt-3">
-          Need an account? <a href="{% url 'signup' %}">Sign up</a> |
-          <a href="{% url 'public_draft' %}">View Live Draft</a>
-        </p>
-
-
+        <!-- Marketing Section -->
+        <div class="marketing-section text-center">
+            <img src="{% static 'league/images/logo.png' %}" alt="Web3Sports Logo" class="logo-img mb-3">
+            <h2>Web3Sports Draft</h2>
+            <p class="lead">Draft your dream team with blockchain power!</p>
+            <ul class="list-unstyled">
+                <li><strong>Fast:</strong> Build teams in minutes</li>
+                <li><strong>Fun:</strong> Compete with friends</li>
+                <li><strong>Free:</strong> No cost to join</li>
+            </ul>
+        </div>
+        <!-- Login Form -->
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="login-form">
+                    <h1 class="text-center">Login</h1>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary w-100 mt-2">Login</button>
+                        <a href="{% url 'signup' %}" class="btn btn-link d-block text-center mt-2">Need an account? Sign Up</a>
+                    </form>
+                    <p class="text-center mt-3">Created by <a href="https://christopherlin.ca/web3sports/" target="_blank">Web3Sports</a></p>
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 </html>
