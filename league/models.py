@@ -70,7 +70,7 @@ class Player(models.Model):
     past_level = models.CharField(max_length=100, blank=True)
     travel_before = models.CharField(max_length=255, blank=True)
     last_team = models.CharField(max_length=100, blank=True)
-    last_league = models.CharField(max_length=100, blank=True)
+    last_league = models.CharField(max_length=225, blank=True)
     conflict_description = models.TextField(blank=True)
     last_team_coach = models.CharField(max_length=100, blank=True)
 
