@@ -124,9 +124,9 @@
                                     </a>
                                 </th>
                                 <th>
-                                    <a href="{% url 'dashboard_with_division' division.id %}?sort_by=birthdate&sort_order={% if sort_by == 'birthdate' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none">
-                                        Birthdate
-                                        {% if sort_by == 'birthdate' %}
+                                    <a href="{% url 'dashboard_with_division' division.id %}?sort_by=rating&sort_order={% if sort_by == 'rating' and sort_order == 'asc' %}desc{% else %}asc{% endif %}" class="text-decoration-none">
+                                        Rating
+                                        {% if sort_by == 'rating' %}
                                             <span class="sort-arrow">{% if sort_order == 'asc' %}▲{% else %}▼{% endif %}</span>
                                         {% endif %}
                                     </a>
@@ -143,7 +143,7 @@
                                 <tr>
                                     <td><a href="{% url 'player_detail' player.id %}">{{ player.first_name }}</a></td>
                                     <td>{{ player.last_name }}</td>
-                                    <td>{{ player.birthdate|date:"Y-m-d"|default:"N/A" }}</td>
+                                    <td>{{ player.rating|default:"-" }}</td>
                                     <td>{{ player.primary_positions|default:"N/A" }}</td>
                                     <td>{{ player.coach_comments|default:"N/A" }}</td>
                                     <td>

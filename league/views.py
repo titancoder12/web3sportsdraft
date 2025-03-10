@@ -152,7 +152,7 @@ def dashboard(request, division_id=None):
     sort_by = request.GET.get('sort_by', 'last_name')
     sort_order = request.GET.get('sort_order', 'asc')
     order_prefix = '-' if sort_order == 'desc' else ''
-    valid_sort_fields = ['first_name', 'last_name', 'birthdate']
+    valid_sort_fields = ['first_name', 'last_name', 'rating']
     if sort_by not in valid_sort_fields:
         sort_by = 'last_name'
     
