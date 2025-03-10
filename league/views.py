@@ -126,23 +126,32 @@ def player_detail(request, player_id):
 def dashboard(request, division_id=None):
     if hasattr(request.user, 'player_profile'):
         return redirect('player_profile')
-    
+
+    user = request.user
+
+    # Get divisions the user can access
+    coach_divisions = Division.objects.filter(teams__coaches=user).distinct()
+    coordinator_divisions = Division.objects.filter(coordinators=user).distinct()  # Add distinct()
+    divisions = coach_divisions | coordinator_divisions  # Union of accessible divisions
+
+    # Handle division selection
     if division_id:
         division = get_object_or_404(Division, id=division_id)
+        if division not in divisions:
+            return render(request, 'league/error.html', {'message': 'You do not have access to this division.', 'divisions': divisions})
     else:
-        division = Division.objects.filter(teams__coaches=request.user).first()
+        division = coach_divisions.first()  # Try coach division first
         if not division:
-            division = Division.objects.filter(coordinators=request.user).first()
+            division = coordinator_divisions.first()  # Then coordinator division
         if not division:
-            return render(request, 'league/no_division.html', {'divisions': Division.objects.all()})
-    
+            return render(request, 'league/no_division.html', {'divisions': divisions})
+
     teams = Team.objects.filter(division=division).prefetch_related('player_set', 'coaches')
-    
+
     # Sorting for Available Players
     sort_by = request.GET.get('sort_by', 'last_name')
     sort_order = request.GET.get('sort_order', 'asc')
     order_prefix = '-' if sort_order == 'desc' else ''
-    
     valid_sort_fields = ['first_name', 'last_name', 'birthdate']
     if sort_by not in valid_sort_fields:
         sort_by = 'last_name'
@@ -150,10 +159,10 @@ def dashboard(request, division_id=None):
     available_players = Player.objects.filter(
         division=division, team__isnull=True
     ).order_by(f"{order_prefix}{sort_by}")
-    
+
     draft_picks = DraftPick.objects.filter(division=division)
-    is_coach = Team.objects.filter(coaches=request.user, division=division).exists()
-    is_coordinator = division.coordinators.filter(id=request.user.id).exists()
+    is_coach = Team.objects.filter(coaches=user, division=division).exists()
+    is_coordinator = division.coordinators.filter(id=user.id).exists()
 
     # Handle POST actions
     if request.method == 'POST':
@@ -165,16 +174,15 @@ def dashboard(request, division_id=None):
             player = get_object_or_404(Player, id=player_id, division=division)
             
             if player.team:
-                if is_coach and not is_coordinator and not player.team.coaches.filter(id=request.user.id).exists():
+                if is_coach and not is_coordinator and not player.team.coaches.filter(id=user.id).exists():
                     return render(request, 'league/no_permission.html')
                 
                 DraftPick.objects.filter(player=player, division=division).delete()
                 player.team = None
                 player.draft_round = None
                 player.save()
-            return redirect('dashboard_with_division', division_id=division_id)
+            return redirect('dashboard_with_division', division_id=division.id)
         
-        # Handle delete action
         elif 'delete_player_id' in request.POST:
             if not is_coordinator:
                 return render(request, 'league/no_permission.html')
@@ -182,12 +190,11 @@ def dashboard(request, division_id=None):
             player_id = request.POST.get('delete_player_id')
             player = get_object_or_404(Player, id=player_id, division=division)
             
-            # Delete associated User and Player
             if player.user:
-                player.user.delete()  # This will cascade to delete the Player due to on_delete=models.CASCADE
+                player.user.delete()
             else:
-                player.delete()  # If no User, just delete the Player
-            return redirect('dashboard_with_division', division_id=division_id)
+                player.delete()
+            return redirect('dashboard_with_division', division_id=division.id)
 
     team_rosters = {team.id: list(team.player_set.all()) for team in teams}
 
@@ -198,7 +205,7 @@ def dashboard(request, division_id=None):
         'draft_picks': draft_picks,
         'is_coach': is_coach,
         'is_coordinator': is_coordinator,
-        'divisions': Division.objects.all(),
+        'divisions': divisions,  # Restricted to user’s divisions
         'team_rosters': team_rosters,
         'sort_by': sort_by,
         'sort_order': sort_order,
