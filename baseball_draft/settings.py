@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'league', # Add the league app to the list of installed apps
+    'api', # Add the api app to the list of installed apps
 ]
 
 MIDDLEWARE = [
