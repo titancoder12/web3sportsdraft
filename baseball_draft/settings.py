@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework', # Add the rest_framework app to the list of installed apps
     'league', # Add the league app to the list of installed apps
     'api', # Add the api app to the list of installed apps
 ]
