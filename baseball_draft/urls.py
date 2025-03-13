@@ -3,7 +3,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
+from rest_framework import routers
 from league import views
+from api import views as api_views
+
+router = routers.DefaultRouter()
+router.register(r'players', api_views.PlayerViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,4 +29,8 @@ urlpatterns = [
     path('trade/<int:division_id>/', views.trade_players, name='trade_players'),
     path('player/<int:player_id>/', views.player_detail, name='player_detail'),
     path('import-players/', views.import_players, name='import_players'),  # New route
+
+    # REST API
+    path('api/', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
