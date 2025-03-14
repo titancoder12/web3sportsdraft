@@ -20,6 +20,10 @@ class Division(models.Model):
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
+    country = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    province_state = models.CharField(max_length=100, blank=True)
+    is_approved = models.BooleanField(default=False)
     division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='teams')
     coaches = models.ManyToManyField(User, related_name='teams')
     max_players = models.IntegerField(default=12)
