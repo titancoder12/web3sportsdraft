@@ -32,6 +32,8 @@ class Player(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     age = models.IntegerField(null=True, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+    birth_country = models.CharField(max_length=100, blank=True)
     position = models.CharField(max_length=50, blank=True)
     rating = models.IntegerField(default=0, blank=True)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.SET_NULL)
@@ -39,6 +41,10 @@ class Player(models.Model):
     description = models.TextField(blank=True)
     coach_comments = models.TextField(blank=True)
     division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='players')
+
+    number = models.IntegerField(null=True, blank=True)
+    batting_throwing = models.CharField(max_length=10, blank=True)  # "B/T" Field
+    height_weight = models.CharField(max_length=20, blank=True)  # "H/W" Field
 
     # Performance Evaluations
     grip_strength = models.FloatField(null=True, blank=True)
