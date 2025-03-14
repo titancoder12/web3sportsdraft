@@ -131,7 +131,7 @@ def dashboard(request, division_id=None):
 
     # Get divisions the user can access
     coach_divisions = Division.objects.filter(teams__coaches=user).distinct()
-    coordinator_divisions = Division.objects.filter(coordinators=user).distinct()  # Add distinct()
+    coordinator_divisions = Division.objects.filter(coordinators=user).distinct()
     divisions = coach_divisions | coordinator_divisions  # Union of accessible divisions
 
     # Handle division selection
@@ -146,7 +146,7 @@ def dashboard(request, division_id=None):
         if not division:
             return render(request, 'league/no_division.html', {'divisions': divisions})
 
-    teams = Team.objects.filter(division=division).prefetch_related('player_set', 'coaches')
+    teams = Team.objects.filter(division=division).prefetch_related('players', 'coaches')  # Updated to use 'players' from teams ManyToMany
 
     # Sorting for Available Players
     sort_by = request.GET.get('sort_by', 'last_name')
@@ -156,8 +156,9 @@ def dashboard(request, division_id=None):
     if sort_by not in valid_sort_fields:
         sort_by = 'last_name'
     
+    # Available players: no team AND no teams assigned
     available_players = Player.objects.filter(
-        division=division, team__isnull=True
+        division=division, team__isnull=True, teams__isnull=True
     ).order_by(f"{order_prefix}{sort_by}")
 
     draft_picks = DraftPick.objects.filter(division=division)
@@ -173,12 +174,13 @@ def dashboard(request, division_id=None):
             player_id = request.POST.get('undraft_player_id')
             player = get_object_or_404(Player, id=player_id, division=division)
             
-            if player.team:
+            if player.team or player.teams.exists():  # Check both team and teams
                 if is_coach and not is_coordinator and not player.team.coaches.filter(id=user.id).exists():
                     return render(request, 'league/no_permission.html')
                 
                 DraftPick.objects.filter(player=player, division=division).delete()
-                player.team = None
+                player.team = None  # Clear ForeignKey
+                player.teams.clear()  # Clear ManyToMany
                 player.draft_round = None
                 player.save()
             return redirect('dashboard_with_division', division_id=division.id)
@@ -196,21 +198,26 @@ def dashboard(request, division_id=None):
                 player.delete()
             return redirect('dashboard_with_division', division_id=division.id)
 
-    team_rosters = {team.id: list(team.player_set.all()) for team in teams}
+    # Team rosters: Use teams.players, fall back to player_set for transition
+    team_rosters = {}
+    for team in teams:
+        roster = list(team.players.all())  # Primary: ManyToMany
+        if not roster:  # Fallback to ForeignKey if teams is empty
+            roster = list(team.player_set.all())
+        team_rosters[team.id] = roster
 
-    context = {
+    return render(request, 'league/dashboard.html', {
         'division': division,
+        'divisions': divisions,
         'teams': teams,
-        'players': available_players,
+        'available_players': available_players,
         'draft_picks': draft_picks,
+        'team_rosters': team_rosters,
         'is_coach': is_coach,
         'is_coordinator': is_coordinator,
-        'divisions': divisions,  # Restricted to user’s divisions
-        'team_rosters': team_rosters,
         'sort_by': sort_by,
         'sort_order': sort_order,
-    }
-    return render(request, 'league/dashboard.html', context)
+    })
 
 # league/views.py (relevant section)
 @login_required

@@ -41,6 +41,7 @@ class Player(models.Model):
     position = models.CharField(max_length=50, blank=True)
     rating = models.IntegerField(default=0, blank=True)
     team = models.ForeignKey(Team, null=True, blank=True, on_delete=models.SET_NULL)
+    teams = models.ManyToManyField(Team, blank=True, related_name='players')  # will eventually replace team. For now for an easier migration to many-to-many.
     draft_round = models.IntegerField(null=True, blank=True)
     description = models.TextField(blank=True)
     coach_comments = models.TextField(blank=True)
