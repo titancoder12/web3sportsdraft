@@ -146,7 +146,7 @@ def dashboard(request, division_id=None):
         if not division:
             return render(request, 'league/no_division.html', {'divisions': divisions})
 
-    teams = Team.objects.filter(division=division).prefetch_related('players', 'coaches')  # Updated to use 'players' from teams ManyToMany
+    teams = Team.objects.filter(division=division).prefetch_related('players', 'coaches')
 
     # Sorting for Available Players
     sort_by = request.GET.get('sort_by', 'last_name')
@@ -156,7 +156,6 @@ def dashboard(request, division_id=None):
     if sort_by not in valid_sort_fields:
         sort_by = 'last_name'
     
-    # Available players: no team AND no teams assigned
     available_players = Player.objects.filter(
         division=division, team__isnull=True, teams__isnull=True
     ).order_by(f"{order_prefix}{sort_by}")
@@ -174,13 +173,24 @@ def dashboard(request, division_id=None):
             player_id = request.POST.get('undraft_player_id')
             player = get_object_or_404(Player, id=player_id, division=division)
             
-            if player.team or player.teams.exists():  # Check both team and teams
-                if is_coach and not is_coordinator and not player.team.coaches.filter(id=user.id).exists():
-                    return render(request, 'league/no_permission.html')
+            if player.team or player.teams.exists():  # Player is drafted if either field is set
+                # For coaches, check if they coach any of the player's teams
+                if is_coach and not is_coordinator:
+                    can_undraft = False
+                    if player.team and user in player.team.coaches.all():
+                        can_undraft = True
+                    elif player.teams.exists():
+                        for team in player.teams.all():
+                            if user in team.coaches.all():
+                                can_undraft = True
+                                break
+                    if not can_undraft:
+                        return render(request, 'league/no_permission.html')
                 
+                # Undraft: clear both team and teams
                 DraftPick.objects.filter(player=player, division=division).delete()
-                player.team = None  # Clear ForeignKey
-                player.teams.clear()  # Clear ManyToMany
+                player.team = None
+                player.teams.clear()
                 player.draft_round = None
                 player.save()
             return redirect('dashboard_with_division', division_id=division.id)
@@ -262,6 +272,7 @@ def make_pick(request, player_id, division_id):
                 round_number=round_number
             )
             player.team = team
+            player.teams.add(team)  # Add to ManyToManyField
             player.draft_round = round_number
             player.save()
             return redirect('dashboard_with_division', division_id=division_id)
