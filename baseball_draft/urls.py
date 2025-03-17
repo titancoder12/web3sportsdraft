@@ -9,6 +9,8 @@ from api import views as api_views
 
 router = routers.DefaultRouter()
 router.register(r'players', api_views.PlayerViewSet)
+router.register(r'teams', api_views.TeamViewSet)
+router.register(r'divisions', api_views.DivisionViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
