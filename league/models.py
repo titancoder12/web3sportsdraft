@@ -87,6 +87,42 @@ class Player(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.division})"
+    
+from django.db import models
+
+class Game(models.Model):
+    game_id = models.CharField(max_length=50, unique=True)
+    team_home = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="home_games")
+    team_away = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="away_games")
+    date = models.DateTimeField()
+    time = models.TimeField()
+    location = models.CharField(max_length=100)
+    finalized = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
+
+class PlayerGameStat(models.Model):
+    player = models.ForeignKey("Player", on_delete=models.CASCADE)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    at_bats = models.IntegerField(default=0)
+    runs = models.IntegerField(default=0)
+    hits = models.IntegerField(default=0)
+    rbis = models.IntegerField(default=0)
+    singles = models.IntegerField(default=0)
+    doubles = models.IntegerField(default=0)
+    triples = models.IntegerField(default=0)
+    home_runs = models.IntegerField(default=0)
+    strikeouts = models.IntegerField(default=0)
+    base_on_balls = models.IntegerField(default=0)
+    hit_by_pitch = models.IntegerField(default=0)
+    sacrifice_flies = models.IntegerField(default=0)
+    innings_pitched = models.FloatField(default=0)
+    hits_allowed = models.IntegerField(default=0)
+    runs_allowed = models.IntegerField(default=0)
+    earned_runs = models.IntegerField(default=0)
+    walks_allowed = models.IntegerField(default=0)
+    strikeouts_pitching = models.IntegerField(default=0)
+    home_runs_allowed = models.IntegerField(default=0)
+    is_verified = models.BooleanField(default=False)
 
 class DraftPick(models.Model):
     division = models.ForeignKey(Division, on_delete=models.CASCADE, related_name='draft_picks')
