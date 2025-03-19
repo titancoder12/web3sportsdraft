@@ -1,7 +1,7 @@
 # league/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse  # Ensure this line is present
-from .models import Team, Player, DraftPick, Division
+from .models import Team, Player, DraftPick, Division, PlayerGameStat, Game
 from django.contrib.auth.decorators import login_required
 from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm, PlayerCSVUploadForm
 from django.contrib.auth.models import User
@@ -9,6 +9,17 @@ import csv
 from io import TextIOWrapper
 from datetime import datetime
 from django.contrib import messages
+
+from django.shortcuts import render
+
+def box_score_view(request, game_id):
+    """
+    Renders the box score page for a given game.
+    """
+    game = Game.objects.get(game_id=game_id)
+    stats = PlayerGameStat.objects.filter(game=game, is_verified=True)
+    return render(request, 'league/box_score.html', {'game': game, 'stats': stats})
+
 
 @login_required
 def import_players(request):

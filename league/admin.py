@@ -2,6 +2,7 @@
 from django.contrib import admin
 from .models import League, Division, Team, Player, DraftPick
 
+
 admin.site.site_title = "Baseball League Admin"
 admin.site.site_header = "Baseball League Admin"
 admin.site.index_title = "Welcome to Baseball League Admin"

@@ -7,6 +7,7 @@ from rest_framework import routers
 from league import views
 from api import views as api_views
 
+# REST API
 router = routers.DefaultRouter()
 router.register(r'players', api_views.PlayerViewSet)
 router.register(r'teams', api_views.TeamViewSet)
@@ -31,8 +32,13 @@ urlpatterns = [
     path('trade/<int:division_id>/', views.trade_players, name='trade_players'),
     path('player/<int:player_id>/', views.player_detail, name='player_detail'),
     path('import-players/', views.import_players, name='import_players'),  # New route
+    path('boxscore/<str:game_id>/', views.box_score_view, name='box_score'),
 
     # REST API
-    path('api/', include(router.urls)),
+    path('api/', include(router.urls)), # from router above
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    
+    # API Endpoints for Box Score Uploads
+    path('upload-boxscore/', api_views.upload_box_score, name='upload_box_score'),
+    path('verify-stats/<int:stat_id>/', api_views.verify_player_stats, name='verify_player_stats'),
 ]

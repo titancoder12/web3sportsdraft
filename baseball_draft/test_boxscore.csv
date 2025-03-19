@@ -1,0 +1,4 @@
+game_id,username,at_bats,runs,hits,rbis,singles,doubles,triples,home_runs,strikeouts,base_on_balls,hit_by_pitch,sacrifice_flies,innings_pitched,hits_allowed,runs_allowed,earned_runs,walks_allowed,strikeouts_pitching,home_runs_allowed,team_home,team_away,date,time,location
+,erezdolgin,4,2,3,2,1,1,0,1,1,1,0,0,5.0,4,2,2,1,6,1,TeamA,TeamB,2025-03-18,18:00,Yankee Stadium
+,oliverziniuk,3,1,2,1,1,0,0,0,2,0,0,0,4.2,3,1,1,2,5,0,TeamA,TeamB,2025-03-18,18:00,Yankee Stadium
+,ryanhawley,5,0,1,0,1,0,0,0,3,1,1,0,6.1,6,3,3,3,7,2,TeamA,TeamB,2025-03-18,18:00,Yankee Stadium

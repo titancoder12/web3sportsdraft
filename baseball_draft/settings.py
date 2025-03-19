@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework', # Add the rest_framework app to the list of installed apps
+    'rest_framework.authtoken', # for Token Authentication
     'league', # Add the league app to the list of installed apps
     'api', # Add the api app to the list of installed apps
 ]
@@ -136,3 +137,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/'  # After login, go to dashboard
 LOGOUT_REDIRECT_URL = '/accounts/login/'  # After logout, go to login
 LOGIN_URL = '/accounts/login/'  # Default login URL
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
