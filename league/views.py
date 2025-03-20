@@ -16,7 +16,7 @@ def box_score_view(request, game_id):
     """
     Renders the box score page for a given game.
     """
-    game = Game.objects.get(game_id=game_id)
+    game = Game.objects.get(id=game_id)
     stats = PlayerGameStat.objects.filter(game=game, is_verified=True)
     return render(request, 'league/box_score.html', {'game': game, 'stats': stats})
 

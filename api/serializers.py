@@ -18,3 +18,8 @@ class DivisionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Division
         fields = ['id', 'name', 'league']
+
+class GameSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Game
+        fields = ['id','game_id','team_home', 'team_away','date','time','location','finalized','is_verified']
