@@ -51,7 +51,7 @@ class Player(models.Model):
     batting_throwing = models.CharField(max_length=10, blank=True)  # "B/T" Field
     height_weight = models.CharField(max_length=20, blank=True)  # "H/W" Field
 
-    # Performance Evaluations # Migrate to a separate model later
+    # Performance Evaluations
     grip_strength = models.FloatField(null=True, blank=True)
     lateral_jump = models.FloatField(null=True, blank=True)
     shot_put = models.FloatField(null=True, blank=True)
@@ -63,7 +63,7 @@ class Player(models.Model):
     bat_speed = models.FloatField(null=True, blank=True)
     pitching_comment = models.TextField(blank=True)
 
-    # Personal Details. # Migrate to registration later
+    # Personal Details
     birthdate = models.DateField(null=True, blank=True)
     parents_volunteering = models.CharField(max_length=255, blank=True)
     other_activities = models.CharField(max_length=255, blank=True)
@@ -91,7 +91,7 @@ class Player(models.Model):
 from django.db import models
 
 class Game(models.Model):
-    #game_id = models.CharField(max_length=50, unique=True)
+    game_id = models.CharField(max_length=50, unique=True)
     team_home = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="home_games")
     team_away = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="away_games")
     date = models.DateTimeField()
@@ -101,7 +101,6 @@ class Game(models.Model):
     is_verified = models.BooleanField(default=False)
 
 class PlayerGameStat(models.Model):
-    # Hitting Stats
     player = models.ForeignKey("Player", on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     at_bats = models.IntegerField(default=0)
@@ -116,7 +115,6 @@ class PlayerGameStat(models.Model):
     base_on_balls = models.IntegerField(default=0)
     hit_by_pitch = models.IntegerField(default=0)
     sacrifice_flies = models.IntegerField(default=0)
-    # Pitching Stats
     innings_pitched = models.FloatField(default=0)
     hits_allowed = models.IntegerField(default=0)
     runs_allowed = models.IntegerField(default=0)
