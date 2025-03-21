@@ -36,34 +36,36 @@ def upload_box_score(request):
     io_string = io.StringIO(data_set)
     headers = next(io_string)  # Skip header row
 
-    # Initialize variables
-    created_game = None  # Only create one game for rows without `game_id`
-    error_rows = []  # Track problematic rows
+    created_game = None
+    error_rows = []
 
-    for index, row in enumerate(csv.reader(io_string, delimiter=','), start=2):  # Start=2 to account for the header row
+    for index, row in enumerate(csv.reader(io_string, delimiter=','), start=2):
         try:
             (
-                game_id, username, at_bats, runs, hits, rbis, singles, doubles, triples, home_runs,
+                game_id, first_name, last_name, username, at_bats, runs, hits, rbis, singles, doubles, triples, home_runs,
                 strikeouts, base_on_balls, hit_by_pitch, sacrifice_flies, innings_pitched, hits_allowed,
                 runs_allowed, earned_runs, walks_allowed, strikeouts_pitching, home_runs_allowed,
                 team_home, team_away, date, time, location
             ) = row
 
-            # If `game_id` is provided, link to the existing game
+            # If game_id is provided, look up existing game
             if game_id:
                 game = Game.objects.filter(game_id=game_id).first()
                 if not game:
                     error_rows.append(f"Row {index}: Game with ID '{game_id}' not found.")
-                    continue  # Skip this row
-
-            # If `game_id` is NOT provided, ensure all such rows belong to the same new game
+                    continue
             else:
-                if created_game is None:  # Create the new game only once
-                    home_team_obj, _ = Team.objects.get_or_create(name=team_home)
-                    away_team_obj, _ = Team.objects.get_or_create(name=team_away)
+                # Only create one new game per import
+                if created_game is None:
+                    try:
+                        home_team_obj = Team.objects.get(id=int(team_home))
+                        away_team_obj = Team.objects.get(id=int(team_away))
+                    except Team.DoesNotExist:
+                        error_rows.append(f"Row {index}: Team with ID '{team_home}' or '{team_away}' not found.")
+                        continue
 
                     created_game = Game.objects.create(
-                        game_id=str(uuid.uuid4()),  # Generate unique game_id
+                        game_id=str(uuid.uuid4()),
                         team_home=home_team_obj,
                         team_away=away_team_obj,
                         date=datetime.strptime(date, "%Y-%m-%d"),
@@ -73,18 +75,18 @@ def upload_box_score(request):
                         is_verified=False,
                     )
 
-                game = created_game  # Assign the newly created game
+                game = created_game
 
-            # Validate player existence
+            # Validate player
             player = Player.objects.filter(user__username=username).first()
             if not player:
                 error_rows.append(f"Row {index}: Player with username '{username}' not found.")
-                continue  # Skip this row
+                continue
 
-            # Create or update the player's stats
+            # Get or create player stats for the game
             stat, created = PlayerGameStat.objects.get_or_create(player=player, game=game)
 
-            # Update Hitting Stats
+            # Assign hitting stats
             stat.at_bats = int(at_bats)
             stat.runs = int(runs)
             stat.hits = int(hits)
@@ -98,7 +100,7 @@ def upload_box_score(request):
             stat.hit_by_pitch = int(hit_by_pitch)
             stat.sacrifice_flies = int(sacrifice_flies)
 
-            # Update Pitching Stats
+            # Assign pitching stats
             stat.innings_pitched = float(innings_pitched)
             stat.hits_allowed = int(hits_allowed)
             stat.runs_allowed = int(runs_allowed)
@@ -107,17 +109,17 @@ def upload_box_score(request):
             stat.strikeouts_pitching = int(strikeouts_pitching)
             stat.home_runs_allowed = int(home_runs_allowed)
 
-            stat.is_verified = True # Import stats are automatically verified
+            stat.is_verified = True  # auto-verified for import
             stat.save()
 
         except ValueError as e:
             error_rows.append(f"Row {index}: Data format error - {str(e)}")
 
-    response_message = {"message": "Box score uploaded successfully. Awaiting verification."}
+    response = {"message": "Box score upload complete."}
     if error_rows:
-        response_message["warnings"] = error_rows
-
-    return Response(response_message, status=201 if not error_rows else 207)
+        response["warnings"] = error_rows
+        return Response(response, status=207)
+    return Response(response, status=201)
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
