@@ -20,54 +20,71 @@ from rest_framework.authentication import TokenAuthentication
 def upload_box_score(request):
     """
     Allows coaches to upload a box score in CSV format using the player's username.
-    If no game_id is provided, a new Game is created automatically.
+    If `game_id` is not specified, all rows without `game_id` belong to a single newly created game.
+    Rows with `game_id` are linked to existing games (or skipped if the game does not exist).
     """
+
     if 'file' not in request.FILES:
         return Response({"error": "CSV file required."}, status=400)
 
     csv_file = request.FILES['file']
-    data_set = csv_file.read().decode('UTF-8')
+    try:
+        data_set = csv_file.read().decode('UTF-8')
+    except UnicodeDecodeError:
+        return Response({"error": "Invalid file encoding. Please upload a UTF-8 encoded CSV file."}, status=400)
+
     io_string = io.StringIO(data_set)
-    next(io_string)  # Skip header row
+    headers = next(io_string)  # Skip header row
 
-    created_games = {}  # Store new games to avoid duplicate creation
+    # Initialize variables
+    created_game = None  # Only create one game for rows without `game_id`
+    error_rows = []  # Track problematic rows
 
-    for row in csv.reader(io_string, delimiter=','):
-        (
-            game_id, username, at_bats, runs, hits, rbis, singles, doubles, triples, home_runs,
-            strikeouts, base_on_balls, hit_by_pitch, sacrifice_flies, innings_pitched, hits_allowed,
-            runs_allowed, earned_runs, walks_allowed, strikeouts_pitching, home_runs_allowed,
-            team_home, team_away, date, time, location
-        ) = row
-
-        # Auto-create Game if game_id is missing
-        if not game_id:
-            game_id = str(uuid.uuid4())  # Generate a unique game_id
-            if game_id not in created_games:
-                game = Game.objects.create(
-                    game_id=game_id,
-                    team_home=Team.objects.get_or_create(name=team_home)[0],
-                    team_away=Team.objects.get_or_create(name=team_away)[0],
-                    date=datetime.strptime(date, "%Y-%m-%d"),
-                    time=datetime.strptime(time, "%H:%M").time(),
-                    location=location,
-                    finalized=False,
-                    is_verified=False,
-                )
-                created_games[game_id] = game
-            else:
-                game = created_games[game_id]
-        else:
-            try:
-                game = Game.objects.get(game_id=game_id)
-            except Game.DoesNotExist:
-                return Response({"error": f"Game with ID {game_id} not found."}, status=404)
-
+    for index, row in enumerate(csv.reader(io_string, delimiter=','), start=2):  # Start=2 to account for the header row
         try:
-            player = Player.objects.get(user__username=username)  # Query by username
+            (
+                game_id, username, at_bats, runs, hits, rbis, singles, doubles, triples, home_runs,
+                strikeouts, base_on_balls, hit_by_pitch, sacrifice_flies, innings_pitched, hits_allowed,
+                runs_allowed, earned_runs, walks_allowed, strikeouts_pitching, home_runs_allowed,
+                team_home, team_away, date, time, location
+            ) = row
+
+            # If `game_id` is provided, link to the existing game
+            if game_id:
+                game = Game.objects.filter(game_id=game_id).first()
+                if not game:
+                    error_rows.append(f"Row {index}: Game with ID '{game_id}' not found.")
+                    continue  # Skip this row
+
+            # If `game_id` is NOT provided, ensure all such rows belong to the same new game
+            else:
+                if created_game is None:  # Create the new game only once
+                    home_team_obj, _ = Team.objects.get_or_create(name=team_home)
+                    away_team_obj, _ = Team.objects.get_or_create(name=team_away)
+
+                    created_game = Game.objects.create(
+                        game_id=str(uuid.uuid4()),  # Generate unique game_id
+                        team_home=home_team_obj,
+                        team_away=away_team_obj,
+                        date=datetime.strptime(date, "%Y-%m-%d"),
+                        time=datetime.strptime(time, "%H:%M").time(),
+                        location=location,
+                        finalized=False,
+                        is_verified=False,
+                    )
+
+                game = created_game  # Assign the newly created game
+
+            # Validate player existence
+            player = Player.objects.filter(user__username=username).first()
+            if not player:
+                error_rows.append(f"Row {index}: Player with username '{username}' not found.")
+                continue  # Skip this row
+
+            # Create or update the player's stats
             stat, created = PlayerGameStat.objects.get_or_create(player=player, game=game)
 
-            # Hitting Stats
+            # Update Hitting Stats
             stat.at_bats = int(at_bats)
             stat.runs = int(runs)
             stat.hits = int(hits)
@@ -81,7 +98,7 @@ def upload_box_score(request):
             stat.hit_by_pitch = int(hit_by_pitch)
             stat.sacrifice_flies = int(sacrifice_flies)
 
-            # Pitching Stats
+            # Update Pitching Stats
             stat.innings_pitched = float(innings_pitched)
             stat.hits_allowed = int(hits_allowed)
             stat.runs_allowed = int(runs_allowed)
@@ -93,10 +110,14 @@ def upload_box_score(request):
             stat.is_verified = False  # Awaiting coach approval
             stat.save()
 
-        except Player.DoesNotExist:
-            continue  # Skip entries where the player does not exist
+        except ValueError as e:
+            error_rows.append(f"Row {index}: Data format error - {str(e)}")
 
-    return Response({"message": "Box score uploaded successfully. Awaiting verification."}, status=201)
+    response_message = {"message": "Box score uploaded successfully. Awaiting verification."}
+    if error_rows:
+        response_message["warnings"] = error_rows
+
+    return Response(response_message, status=201 if not error_rows else 207)
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
