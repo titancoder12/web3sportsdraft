@@ -107,7 +107,7 @@ def upload_box_score(request):
             stat.strikeouts_pitching = int(strikeouts_pitching)
             stat.home_runs_allowed = int(home_runs_allowed)
 
-            stat.is_verified = False  # Awaiting coach approval
+            stat.is_verified = True # Import stats are automatically verified
             stat.save()
 
         except ValueError as e:
