@@ -1,0 +1,1 @@
+python manage.py seed_test_data --reset --players 10 --divisions 1
