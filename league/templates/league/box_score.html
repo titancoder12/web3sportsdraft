@@ -1,126 +1,125 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Box Score - {{ game.team_home }} vs {{ game.team_away }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>Box Score - Game {{ game.id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
+        .boxscore-section {
+            margin-bottom: 40px;
         }
-        .container {
-            max-width: 900px;
-            margin-top: 30px;
-        }
-        .card {
-            border-radius: 10px;
-            box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .table {
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .table th {
-            background-color: #007bff;
-            color: white;
+        .boxscore-section h3 {
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
         }
     </style>
 </head>
 <body>
+<div class="container mt-5">
+    <h1 class="mb-4">Box Score - Game {{ game.id }}</h1>
+    <p><strong>Date:</strong> {{ game.date|date:"Y-m-d" }} | <strong>Time:</strong> {{ game.time }}</p>
+    <p><strong>Location:</strong> {{ game.location }}</p>
 
-<div class="container">
-    <div class="card p-4">
-        <h2 class="text-center text-primary">Box Score</h2>
-        <h4 class="text-center">{{ game.team_home }} vs {{ game.team_away }}</h4>
-        <p class="text-center text-muted">
-            <strong>Date:</strong> {{ game.date }} | <strong>Time:</strong> {{ game.time }} |
-            <strong>Location:</strong> {{ game.location }}
-        </p>
+    <!-- Home Team -->
+    <div class="boxscore-section">
+        <h3 class="text-primary">{{ game.team_home.name }} (Home)</h3>
 
-        <hr>
+        <h5>Hitting</h5>
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Player</th>
+                    <th>AB</th><th>R</th><th>H</th><th>RBI</th>
+                    <th>1B</th><th>2B</th><th>3B</th><th>HR</th>
+                    <th>BB</th><th>HBP</th><th>SF</th><th>SO</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in home_team_stats %}
+                <tr>
+                    <td>{{ stat.player.first_name }} {{ stat.player.last_name }}</td>
+                    <td>{{ stat.at_bats }}</td><td>{{ stat.runs }}</td><td>{{ stat.hits }}</td><td>{{ stat.rbis }}</td>
+                    <td>{{ stat.singles }}</td><td>{{ stat.doubles }}</td><td>{{ stat.triples }}</td><td>{{ stat.home_runs }}</td>
+                    <td>{{ stat.base_on_balls }}</td><td>{{ stat.hit_by_pitch }}</td><td>{{ stat.sacrifice_flies }}</td><td>{{ stat.strikeouts }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="13" class="text-center">No hitting stats available</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-        <!-- Hitting Stats -->
-        <h4 class="text-primary">Hitting Stats</h4>
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead>
-                    <tr>
-                        <th>Player</th>
-                        <th>At Bats</th>
-                        <th>Runs</th>
-                        <th>Hits</th>
-                        <th>RBIs</th>
-                        <th>Singles</th>
-                        <th>Doubles</th>
-                        <th>Triples</th>
-                        <th>Home Runs</th>
-                        <th>Strikeouts</th>
-                        <th>Walks</th>
-                        <th>Hit by Pitch</th>
-                        <th>Sacrifice Flies</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for stat in stats %}
-                    <tr>
-                        <td>{{ stat.player.first_name }} {{ stat.player.last_name }}</td>
-                        <td>{{ stat.at_bats }}</td>
-                        <td>{{ stat.runs }}</td>
-                        <td>{{ stat.hits }}</td>
-                        <td>{{ stat.rbis }}</td>
-                        <td>{{ stat.singles }}</td>
-                        <td>{{ stat.doubles }}</td>
-                        <td>{{ stat.triples }}</td>
-                        <td>{{ stat.home_runs }}</td>
-                        <td>{{ stat.strikeouts }}</td>
-                        <td>{{ stat.base_on_balls }}</td>
-                        <td>{{ stat.hit_by_pitch }}</td>
-                        <td>{{ stat.sacrifice_flies }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pitching Stats -->
-        <h4 class="text-primary mt-4">Pitching Stats</h4>
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead>
-                    <tr>
-                        <th>Player</th>
-                        <th>Innings Pitched</th>
-                        <th>Hits Allowed</th>
-                        <th>Runs Allowed</th>
-                        <th>Earned Runs</th>
-                        <th>Walks Allowed</th>
-                        <th>Strikeouts</th>
-                        <th>Home Runs Allowed</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for stat in stats %}
-                    <tr>
-                        <td>{{ stat.player.first_name }} {{ stat.player.last_name }}</td>
-                        <td>{{ stat.innings_pitched }}</td>
-                        <td>{{ stat.hits_allowed }}</td>
-                        <td>{{ stat.runs_allowed }}</td>
-                        <td>{{ stat.earned_runs }}</td>
-                        <td>{{ stat.walks_allowed }}</td>
-                        <td>{{ stat.strikeouts_pitching }}</td>
-                        <td>{{ stat.home_runs_allowed }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="text-center mt-4">
-            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
-        </div>
+        <h5>Pitching</h5>
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Player</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>SO</th><th>HR</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in home_team_stats %}
+                {% if stat.innings_pitched > 0 %}
+                <tr>
+                    <td>{{ stat.player.first_name }} {{ stat.player.last_name }}</td>
+                    <td>{{ stat.innings_pitched }}</td><td>{{ stat.hits_allowed }}</td><td>{{ stat.runs_allowed }}</td>
+                    <td>{{ stat.earned_runs }}</td><td>{{ stat.walks_allowed }}</td><td>{{ stat.strikeouts_pitching }}</td>
+                    <td>{{ stat.home_runs_allowed }}</td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-</div>
 
+    <!-- Away Team -->
+    <div class="boxscore-section">
+        <h3 class="text-danger">{{ game.team_away.name }} (Away)</h3>
+
+        <h5>Hitting</h5>
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Player</th>
+                    <th>AB</th><th>R</th><th>H</th><th>RBI</th>
+                    <th>1B</th><th>2B</th><th>3B</th><th>HR</th>
+                    <th>BB</th><th>HBP</th><th>SF</th><th>SO</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in away_team_stats %}
+                <tr>
+                    <td>{{ stat.player.first_name }} {{ stat.player.last_name }}</td>
+                    <td>{{ stat.at_bats }}</td><td>{{ stat.runs }}</td><td>{{ stat.hits }}</td><td>{{ stat.rbis }}</td>
+                    <td>{{ stat.singles }}</td><td>{{ stat.doubles }}</td><td>{{ stat.triples }}</td><td>{{ stat.home_runs }}</td>
+                    <td>{{ stat.base_on_balls }}</td><td>{{ stat.hit_by_pitch }}</td><td>{{ stat.sacrifice_flies }}</td><td>{{ stat.strikeouts }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="13" class="text-center">No hitting stats available</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h5>Pitching</h5>
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Player</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>SO</th><th>HR</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in away_team_stats %}
+                {% if stat.innings_pitched > 0 %}
+                <tr>
+                    <td>{{ stat.player.first_name }} {{ stat.player.last_name }}</td>
+                    <td>{{ stat.innings_pitched }}</td><td>{{ stat.hits_allowed }}</td><td>{{ stat.runs_allowed }}</td>
+                    <td>{{ stat.earned_runs }}</td><td>{{ stat.walks_allowed }}</td><td>{{ stat.strikeouts_pitching }}</td>
+                    <td>{{ stat.home_runs_allowed }}</td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{% url 'dashboard_with_division' game.team_home.division.id %}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
 </body>
 </html>

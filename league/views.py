@@ -12,13 +12,18 @@ from django.contrib import messages
 
 from django.shortcuts import render
 
+
 def box_score_view(request, game_id):
-    """
-    Renders the box score page for a given game.
-    """
-    game = Game.objects.get(id=game_id)
-    stats = PlayerGameStat.objects.filter(game=game, is_verified=True)
-    return render(request, 'league/box_score.html', {'game': game, 'stats': stats})
+    game = get_object_or_404(Game, id=game_id)
+    home_team_stats = PlayerGameStat.objects.filter(game=game, player__teams=game.team_home)
+    away_team_stats = PlayerGameStat.objects.filter(game=game, player__teams=game.team_away)
+
+    context = {
+        'game': game,
+        'home_team_stats': home_team_stats,
+        'away_team_stats': away_team_stats,
+    }
+    return render(request, 'league/box_score.html', context)
 
 
 @login_required
