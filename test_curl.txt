@@ -1,5 +1,5 @@
-curl -X POST "http://127.0.0.1:8000/upload-boxscore/" \ 
-     -H "Authorization: Token 8cfb4c9276787aedd3718ea70787bfd63ee6ad7c" \
+curl -X POST "http://127.0.0.1:8000/upload-boxscore/" \
+     -H "Authorization: Token 651a1b49b07890deb4d1aab36a78ecd4c7f03fec" \
      -H "Content-Type: multipart/form-data" \
      -F "file=@test_boxscore.csv" 
 

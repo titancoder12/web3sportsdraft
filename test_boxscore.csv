@@ -1,13 +1,12 @@
-first_name,last_name,username,at_bats,runs,hits,rbis,singles,doubles,triples,home_runs,strikeouts,base_on_balls,hit_by_pitch,sacrifice_flies,innings_pitched,hits_allowed,runs_allowed,earned_runs,walks_allowed,strikeouts_pitching,home_runs_allowed,team_home,team_away,date,time,location
-Harrison,Bell,harrisonbell,4,1,3,0,2,1,0,1,0,1,0,0,1,2,1,1,1,1,1,Team1,Team2,2025-03-18,18:00,Chaldecott South
-Sebastion,Clay,sebastionclay,4,1,2,0,1,1,0,0,0,0,0,0,1,1,1,1,1,1,0,,,,,
-David,Driedger,daviddriedger,4,0,1,0,1,0,0,0,0,1,1,0,1,2,2,2,1,1,0,,,,,
-Charles,Gacek,charlesgacek,4,1,1,1,0,1,0,0,1,0,0,0,1,3,1,1,2,0,0,,,,,
-Ethan ,Hatchard,ethanhatchard,4,0,0,0,0,0,0,0,1,0,0,0,1,3,0,0,1,0,0,,,,,
-Vaughn,Iwasaki,vaughniwasaki,4,0,2,0,2,0,0,0,1,1,0,0,1,0,0,0,0,1,0,,,,,
-Tyler,Lee,tylerlee,4,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,,,,,
-Noah,Meredith,noahmeredith,4,0,0,1,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,,,,,
-Baron,Plaw,baronplaw,3,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,,,,,
-Connor,Scott,connorscott,3,0,0,0,0,0,0,0,1,2,0,0,0,0,0,0,0,0,0,,,,,
-Leo,Virtue,leovirtue,3,1,1,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,,,,,
-Jonah,Yuen,jonahyuen,3,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,,,,,
+game_id,first_name,last_name,username,at_bats,runs,hits,rbis,singles,doubles,triples,home_runs,strikeouts,base_on_balls,hit_by_pitch,sacrifice_flies,innings_pitched,hits_allowed,runs_allowed,earned_runs,walks_allowed,strikeouts_pitching,home_runs_allowed,team_home,team_away,date,time,location
+,Mike,Seager,mikeseager,4,1,3,0,2,1,0,1,0,1,0,0,1,2,1,1,1,1,1,69,70,2025-03-18,18:00,Chaldecott South
+,Aaron,Ramirez,aaronramirez,4,1,2,0,1,1,0,0,0,0,0,0,1,1,1,1,1,1,0,,,,,
+,Yordan,Rutschman,yordanrutschman,4,0,1,0,1,0,0,0,0,1,1,0,1,2,2,2,1,1,0,,,,,
+,Freddie,Rutschman,freddierutschman,4,1,1,1,0,1,0,0,1,0,0,0,1,3,1,1,2,0,0,,,,,
+,Aaron,Trout,aarontrout,4,0,0,0,0,0,0,0,1,0,0,0,1,3,0,0,1,0,0,,,,,
+,Fernando,Judge,fernandojudge,4,0,2,0,2,0,0,0,1,1,0,0,1,0,0,0,0,1,0,,,,,
+,Mike,Rodriguez,mikerodriguez,4,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,,,,,
+,Corey,Bichette,coreybichette,4,0,0,1,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,,,,,
+,Ronald,Rodriguez,ronaldrodriguez,3,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,,,,,
+,Mike,Acuña,mikeacuña,3,0,0,0,0,0,0,0,1,2,0,0,0,0,0,0,0,0,0,,,,,
+,Mookie,Bichette,mookiebichette,3,1,1,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,,,,,
