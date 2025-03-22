@@ -13,6 +13,7 @@ router.register(r'players', api_views.PlayerViewSet)
 router.register(r'teams', api_views.TeamViewSet)
 router.register(r'divisions', api_views.DivisionViewSet)
 router.register(r'games', api_views.GameViewSet)
+router.register(r'stats', api_views.PlayerGameStatViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
