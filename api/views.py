@@ -19,9 +19,8 @@ from rest_framework.authentication import TokenAuthentication
 @permission_classes([IsAuthenticated])
 def upload_box_score(request):
     """
-    Allows coaches to upload a box score in CSV format using the player's username.
-    If `game_id` is not specified, all rows without `game_id` belong to a single newly created game.
-    Rows with `game_id` are linked to existing games (or skipped if the game does not exist).
+    Imports box score data. Uses `team_id` and `is_home`. Supports separate or combined uploads.
+    Allows player details (first/last name) to be included for readability.
     """
 
     if 'file' not in request.FILES:
@@ -42,51 +41,58 @@ def upload_box_score(request):
     for index, row in enumerate(csv.reader(io_string, delimiter=','), start=2):
         try:
             (
-                game_id, first_name, last_name, username, at_bats, runs, hits, rbis, singles, doubles, triples, home_runs,
-                strikeouts, base_on_balls, hit_by_pitch, sacrifice_flies, innings_pitched, hits_allowed,
-                runs_allowed, earned_runs, walks_allowed, strikeouts_pitching, home_runs_allowed,
-                team_home, team_away, date, time, location
+                game_id, first_name, last_name, username, at_bats, runs, hits, rbis, singles, doubles,
+                triples, home_runs, strikeouts, base_on_balls, hit_by_pitch, sacrifice_flies,
+                innings_pitched, hits_allowed, runs_allowed, earned_runs, walks_allowed,
+                strikeouts_pitching, home_runs_allowed, team_id, is_home, date, time, location
             ) = row
 
-            # If game_id is provided, look up existing game
+            # Get team
+            try:
+                team = Team.objects.get(id=int(team_id))
+            except Team.DoesNotExist:
+                error_rows.append(f"Row {index}: Team ID '{team_id}' not found.")
+                continue
+
+            is_home = is_home.lower() == "true"
+
+            # Game lookup or creation
             if game_id:
                 game = Game.objects.filter(game_id=game_id).first()
                 if not game:
-                    error_rows.append(f"Row {index}: Game with ID '{game_id}' not found.")
+                    error_rows.append(f"Row {index}: Game ID '{game_id}' not found.")
                     continue
-            else:
-                # Only create one new game per import
-                if created_game is None:
-                    try:
-                        home_team_obj = Team.objects.get(id=int(team_home))
-                        away_team_obj = Team.objects.get(id=int(team_away))
-                    except Team.DoesNotExist:
-                        error_rows.append(f"Row {index}: Team with ID '{team_home}' or '{team_away}' not found.")
-                        continue
 
-                    created_game = Game.objects.create(
+                if is_home and not game.team_home:
+                    game.team_home = team
+                elif not is_home and not game.team_away:
+                    game.team_away = team
+                game.save()
+            else:
+                if created_game is None:
+                    game = Game.objects.create(
                         game_id=str(uuid.uuid4()),
-                        team_home=home_team_obj,
-                        team_away=away_team_obj,
+                        team_home=team if is_home else None,
+                        team_away=team if not is_home else None,
                         date=datetime.strptime(date, "%Y-%m-%d"),
                         time=datetime.strptime(time, "%H:%M").time(),
                         location=location,
                         finalized=False,
                         is_verified=False,
                     )
+                    created_game = game
+                else:
+                    game = created_game
 
-                game = created_game
-
-            # Validate player
+            # Get player by username
             player = Player.objects.filter(user__username=username).first()
             if not player:
-                error_rows.append(f"Row {index}: Player with username '{username}' not found.")
+                error_rows.append(f"Row {index}: Player '{first_name} {last_name}' (username: '{username}') not found.")
                 continue
 
-            # Get or create player stats for the game
-            stat, created = PlayerGameStat.objects.get_or_create(player=player, game=game)
+            stat, _ = PlayerGameStat.objects.get_or_create(player=player, game=game)
 
-            # Assign hitting stats
+            # Hitting
             stat.at_bats = int(at_bats)
             stat.runs = int(runs)
             stat.hits = int(hits)
@@ -100,7 +106,7 @@ def upload_box_score(request):
             stat.hit_by_pitch = int(hit_by_pitch)
             stat.sacrifice_flies = int(sacrifice_flies)
 
-            # Assign pitching stats
+            # Pitching
             stat.innings_pitched = float(innings_pitched)
             stat.hits_allowed = int(hits_allowed)
             stat.runs_allowed = int(runs_allowed)
@@ -109,7 +115,7 @@ def upload_box_score(request):
             stat.strikeouts_pitching = int(strikeouts_pitching)
             stat.home_runs_allowed = int(home_runs_allowed)
 
-            stat.is_verified = True  # auto-verified for import
+            stat.is_verified = True
             stat.save()
 
         except ValueError as e:
