@@ -49,4 +49,7 @@ urlpatterns = [
 urlpatterns += [
     path("dashboard/", views.player_dashboard, name="player_dashboard"),
     path('coach/dashboard/', views.coach_dashboard, name='coach_dashboard'),
+    path('coach/team/<int:team_id>/add-log/', views.add_team_log, name='add_team_log'),
+    path("coach/team/<int:team_id>/logs/", views.team_logs_view, name="team_logs"),
+
 ]

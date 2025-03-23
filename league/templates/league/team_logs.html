@@ -1,0 +1,46 @@
+{% extends 'league/base.html' %}
+{% block content %}
+<div class="container">
+  <h2>Logs for {{ team.name }}</h2>
+
+  <a href="{% url 'coach_dashboard' %}" class="btn btn-sm btn-secondary mb-3">← Back to Dashboard</a>
+
+  <!-- Log entry form -->
+  <form method="post" action="{% url 'add_team_log' team.id %}" class="card card-body mb-4">
+    {% csrf_token %}
+    <h5>Add New Log</h5>
+    <div class="row">
+      <div class="col-md-3 mb-2">
+        <select name="log_type" class="form-select" required>
+          <option value="practice">Practice</option>
+          <option value="game">Game</option>
+        </select>
+      </div>
+      <div class="col-md-3 mb-2">
+        <input type="date" name="date" class="form-control" required>
+      </div>
+      <div class="col-md-6 mb-2">
+        <textarea name="notes" class="form-control" placeholder="Log notes..." required></textarea>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm">Add Log</button>
+  </form>
+
+  <!-- Log list -->
+  {% if logs %}
+    <ul class="list-group">
+      {% for log in logs %}
+        <li class="list-group-item">
+          <strong>{{ log.date }} - {{ log.log_type|title }}</strong><br>
+          {{ log.notes|linebreaksbr }}
+          <div class="text-muted small mt-1">
+            Entered by {{ log.coach.username }} on {{ log.created_at|date:"M d, Y H:i" }}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No logs yet for this team.</p>
+  {% endif %}
+</div>
+{% endblock %}

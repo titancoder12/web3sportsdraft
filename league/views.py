@@ -14,6 +14,34 @@ from django.db.models import Sum, Count
 from django.db.models.functions import Coalesce
 
 from collections import defaultdict
+from league.models import TeamLog
+
+from django.utils import timezone
+
+@login_required
+def team_logs_view(request, team_id):
+    team = get_object_or_404(Team, id=team_id, coaches=request.user)
+    logs = TeamLog.objects.filter(team=team).order_by('-date')
+
+    return render(request, "league/team_logs.html", {
+        "team": team,
+        "logs": logs,
+    })
+
+
+@login_required
+def add_team_log(request, team_id):
+    team = get_object_or_404(Team, id=team_id, coaches=request.user)
+
+    if request.method == "POST":
+        TeamLog.objects.create(
+            team=team,
+            coach=request.user,
+            log_type=request.POST.get("log_type"),
+            date=request.POST.get("date"),
+            notes=request.POST.get("notes"),
+        )
+    return redirect("coach_dashboard")
 
 @login_required
 def coach_dashboard(request):
@@ -24,9 +52,13 @@ def coach_dashboard(request):
     division_ids = teams.values_list("division_id", flat=True).distinct()
     divisions = Division.objects.filter(id__in=division_ids)
 
+    # Get logs only for teams this coach is on
+    team_logs = TeamLog.objects.filter(team__in=teams).select_related("team", "coach")
+
     return render(request, "league/coach_dashboard.html", {
         "teams": teams,
         "divisions": divisions,
+        "team_logs": team_logs,
     })
 
 @login_required

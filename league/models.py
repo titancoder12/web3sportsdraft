@@ -136,3 +136,17 @@ class DraftPick(models.Model):
 
     def __str__(self):
         return f"Pick {self.pick_number}: {self.player} to {self.team} ({self.division})"
+    
+
+class TeamLog(models.Model):
+    team = models.ForeignKey("Team", on_delete=models.CASCADE)
+    coach = models.ForeignKey(User, on_delete=models.CASCADE)
+    log_type = models.CharField(max_length=10, choices=[("practice", "Practice"), ("game", "Game")])
+    date = models.DateField()
+    notes = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+
+
