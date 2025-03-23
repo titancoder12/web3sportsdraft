@@ -8,6 +8,12 @@
   {% else %}
     <h4>📊 Overall Stats</h4>
     <ul>
+      <li>Batting Avg (AVG): {{ batting_avg }}</li>
+      <li>On-Base % (OBP): {{ obp }}</li>
+      <li>Slugging % (SLG): {{ slg }}</li>
+      <li>OPS: {{ ops }}</li>
+      <li>ERA: {{ era }}</li>
+      <li>K/BB Ratio: {{ kbb }}</li>
       <li>At Bats: {{ overall_stats.at_bats|default:0 }}</li>
       <li>Hits: {{ overall_stats.hits|default:0 }}</li>
       <li>Runs: {{ overall_stats.runs|default:0 }}</li>
