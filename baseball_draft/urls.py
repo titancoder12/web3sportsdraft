@@ -48,4 +48,5 @@ urlpatterns = [
 
 urlpatterns += [
     path("dashboard/", views.player_dashboard, name="player_dashboard"),
+    path('coach/dashboard/', views.coach_dashboard, name='coach_dashboard'),
 ]

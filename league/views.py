@@ -16,6 +16,20 @@ from django.db.models.functions import Coalesce
 from collections import defaultdict
 
 @login_required
+def coach_dashboard(request):
+    user = request.user
+    teams = user.teams.prefetch_related("players", "division")
+
+    # Get unique divisions from coach's teams
+    division_ids = teams.values_list("division_id", flat=True).distinct()
+    divisions = Division.objects.filter(id__in=division_ids)
+
+    return render(request, "league/coach_dashboard.html", {
+        "teams": teams,
+        "divisions": divisions,
+    })
+
+@login_required
 def player_dashboard(request):
     user = request.user
 

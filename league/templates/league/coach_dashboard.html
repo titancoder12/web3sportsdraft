@@ -1,0 +1,48 @@
+<!-- prettier-ignore -->
+{% extends 'league/base.html' %} {% block content %}
+<div class="container">
+  <h2>Coach Dashboard</h2>
+
+  {% if divisions %}
+  <h4>Your Divisions</h4>
+  <ul class="list-group mb-4">
+    {% for division in divisions %}
+    <li
+      class="list-group-item d-flex justify-content-between align-items-center"
+    >
+      <span>{{ division.name }}</span>
+      <a
+        href="{% url 'dashboard_with_division' division.id %}"
+        class="btn btn-sm btn-primary"
+        >View Division</a
+      >
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <!-- prettier-ignore -->
+  {% if teams %}
+  <h4>Your Teams</h4>
+  {% for team in teams %}
+  <div class="card my-4">
+    <div class="card-header">
+      <strong>{{ team.name }}</strong> ({{ team.division.name }})
+    </div>
+    <div class="card-body">
+      <h5>Players:</h5>
+      <ul>
+        {% for player in team.players.all %}
+        <li>
+          <a href="{% url 'player_detail' player.id %}">
+            {{ player.first_name }} {{ player.last_name }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endfor %} {% else %}
+  <p>You are not assigned to any teams yet.</p>
+  {% endif %}
+</div>
+{% endblock %}
