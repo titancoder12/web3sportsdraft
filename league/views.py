@@ -10,7 +10,7 @@ from io import TextIOWrapper
 from datetime import datetime
 from django.contrib import messages
 from django.shortcuts import render
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.db.models.functions import Coalesce
 
 from collections import defaultdict
@@ -21,23 +21,28 @@ def player_dashboard(request):
 
     try:
         player = user.player_profile
-    except Player.DoesNotExist:
+    except:
         return render(request, "league/player_dashboard.html", {
             "error": "Your account is not associated with a player profile."
         })
 
-    # Game stats
+    # Game stats for the player
     game_stats = PlayerGameStat.objects.select_related("game").filter(player=player).order_by("-game__date")
 
-    # Group stats by team
+    # Group stats by team (for Game History by Team)
     team_games = defaultdict(list)
+    player_team_ids = set(player.teams.values_list("id", flat=True))
+
     for stat in game_stats:
-        for team in player.teams.all():
-            if stat.game.team_home_id == team.id or stat.game.team_away_id == team.id:
-                team_games[team.name].append(stat)
+        home_id = stat.game.team_home_id
+        away_id = stat.game.team_away_id
 
+        if home_id in player_team_ids:
+            team_games[stat.game.team_home.name].append(stat)
+        elif away_id in player_team_ids:
+            team_games[stat.game.team_away.name].append(stat)
 
-    # Aggregate stats
+    # Overall aggregate stats
     agg = game_stats.aggregate(
         at_bats=Coalesce(Sum("at_bats"), 0),
         hits=Coalesce(Sum("hits"), 0),
@@ -57,7 +62,6 @@ def player_dashboard(request):
         strikeouts_pitching=Coalesce(Sum("strikeouts_pitching"), 0),
     )
 
-    # Calculated stats
     ab = agg["at_bats"] or 1
     avg = round(agg["hits"] / ab, 3)
     tb = agg["singles"] + 2 * agg["doubles"] + 3 * agg["triples"] + 4 * agg["home_runs"]
@@ -68,14 +72,60 @@ def player_dashboard(request):
     era = round((agg["earned_runs"] * 9) / agg["innings_pitched"], 2) if agg["innings_pitched"] else 0
     kbb = round(agg["strikeouts_pitching"] / agg["walks_allowed"], 2) if agg["walks_allowed"] else 0
 
+    # Per-team stat summaries
+    team_stats = []
+    for team in player.teams.all():
+        team_game_stats = game_stats.filter(
+            game__team_home=team
+        ) | game_stats.filter(
+            game__team_away=team
+        )
 
+        team_agg = team_game_stats.aggregate(
+            games_played=Count("game", distinct=True),
+            hits=Coalesce(Sum("hits"), 0),
+            at_bats=Coalesce(Sum("at_bats"), 0),
+            rbis=Coalesce(Sum("rbis"), 0),
+            home_runs=Coalesce(Sum("home_runs"), 0),
+            base_on_balls=Coalesce(Sum("base_on_balls"), 0),
+            hit_by_pitch=Coalesce(Sum("hit_by_pitch"), 0),
+            sacrifice_flies=Coalesce(Sum("sacrifice_flies"), 0),
+            doubles=Coalesce(Sum("doubles"), 0),
+            triples=Coalesce(Sum("triples"), 0),
+            singles=Coalesce(Sum("singles"), 0),
+            earned_runs=Coalesce(Sum("earned_runs"), 0),
+            innings_pitched=Coalesce(Sum("innings_pitched"), 0.0),
+        )
 
-    team_games = dict(team_games)
+        tab = team_agg["at_bats"] or 1
+        team_tb = team_agg["singles"] + 2 * team_agg["doubles"] + 3 * team_agg["triples"] + 4 * team_agg["home_runs"]
+        team_slg = round(team_tb / tab, 3)
+
+        team_obp_denom = tab + team_agg["base_on_balls"] + team_agg["hit_by_pitch"] + team_agg["sacrifice_flies"] or 1
+        team_obp = round((team_agg["hits"] + team_agg["base_on_balls"] + team_agg["hit_by_pitch"]) / team_obp_denom, 3)
+
+        team_ops = round(team_obp + team_slg, 3)
+        team_avg = round(team_agg["hits"] / tab, 3)
+        team_era = round((team_agg["earned_runs"] * 9) / team_agg["innings_pitched"], 2) if team_agg["innings_pitched"] else 0
+
+        team_stats.append({
+            "team_name": team.name,
+            "games_played": team_agg["games_played"],
+            "hits": team_agg["hits"],
+            "at_bats": team_agg["at_bats"],
+            "avg": team_avg,
+            "rbis": team_agg["rbis"],
+            "home_runs": team_agg["home_runs"],
+            "slg": team_slg,
+            "obp": team_obp,
+            "ops": team_ops,
+            "era": team_era,
+        })
 
     return render(request, "league/player_dashboard.html", {
         "player": player,
         "game_stats": game_stats,
-        "team_games": team_games,
+        "team_games": dict(team_games),
         "overall_stats": agg,
         "batting_avg": avg,
         "slg": slg,
@@ -83,6 +133,7 @@ def player_dashboard(request):
         "ops": ops,
         "era": era,
         "kbb": kbb,
+        "team_stats": team_stats,
     })
 
 def box_score_view(request, game_id):
