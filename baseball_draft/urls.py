@@ -7,6 +7,7 @@ from rest_framework import routers
 from league import views
 from api import views as api_views
 
+
 # REST API
 router = routers.DefaultRouter()
 router.register(r'players', api_views.PlayerViewSet)
@@ -43,4 +44,8 @@ urlpatterns = [
     # API Endpoints for Box Score Uploads
     path('upload-boxscore/', api_views.upload_box_score, name='upload_box_score'),
     path('verify-stats/<int:stat_id>/', api_views.verify_player_stats, name='verify_player_stats'),
+]
+
+urlpatterns += [
+    path("dashboard/", views.player_dashboard, name="player_dashboard"),
 ]

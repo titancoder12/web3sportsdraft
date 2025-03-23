@@ -1,0 +1,51 @@
+{% extends 'league/base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>{{ player.first_name }} {{ player.last_name }}'s Dashboard</h2>
+
+  {% if error %}
+    <p class="text-danger">{{ error }}</p>
+  {% else %}
+    <h4>📊 Overall Stats</h4>
+    <ul>
+      <li>At Bats: {{ overall_stats.at_bats|default:0 }}</li>
+      <li>Hits: {{ overall_stats.hits|default:0 }}</li>
+      <li>Runs: {{ overall_stats.runs|default:0 }}</li>
+      <li>RBIs: {{ overall_stats.rbis|default:0 }}</li>
+      <li>Home Runs: {{ overall_stats.home_runs|default:0 }}</li>
+      <li>Strikeouts: {{ overall_stats.strikeouts|default:0 }}</li>
+      <li>Walks: {{ overall_stats.base_on_balls|default:0 }}</li>
+    </ul>
+
+    <h4>📅 Game History</h4>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Opponent</th>
+          <th>Location</th>
+          <th>Stats</th>
+          <th>Box Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stat in game_stats %}
+        <tr>
+          <td>{{ stat.game.date|date:"Y-m-d" }}</td>
+          <td>
+            {% if stat.game.team_home == player.teams.first %}
+              {{ stat.game.team_away.name }}
+            {% else %}
+              {{ stat.game.team_home.name }}
+            {% endif %}
+          </td>
+          <td>{{ stat.game.location }}</td>
+          <td>H: {{ stat.hits }}, AB: {{ stat.at_bats }}, R: {{ stat.runs }}, HR: {{ stat.home_runs }}</td>
+          <td><a href="{% url 'box_score' stat.game.id %}">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</div>
+{% endblock %}

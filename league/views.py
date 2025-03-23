@@ -9,9 +9,39 @@ import csv
 from io import TextIOWrapper
 from datetime import datetime
 from django.contrib import messages
-
 from django.shortcuts import render
+from django.db.models import Sum
 
+
+@login_required
+def player_dashboard(request):
+    user = request.user
+
+    # Ensure the user has an associated Player
+    try:
+        player = user.player_profile # user.player
+    except Player.DoesNotExist:
+        return render(request, "league/player_dashboard.html", {"error": "No player profile found."})
+
+    # Game history with stats
+    game_stats = PlayerGameStat.objects.select_related("game").filter(player=player).order_by("-game__date")
+
+    # Aggregate overall stats
+    overall_stats = game_stats.aggregate(
+        at_bats=Sum("at_bats"),
+        hits=Sum("hits"),
+        runs=Sum("runs"),
+        rbis=Sum("rbis"),
+        home_runs=Sum("home_runs"),
+        strikeouts=Sum("strikeouts"),
+        base_on_balls=Sum("base_on_balls"),
+    )
+
+    return render(request, "league/player_dashboard.html", {
+        "player": player,
+        "game_stats": game_stats,
+        "overall_stats": overall_stats,
+    })
 
 def box_score_view(request, game_id):
     game = get_object_or_404(Game, id=game_id)
