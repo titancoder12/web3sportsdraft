@@ -8,21 +8,27 @@
   {% else %}
 
     <h4>📊 Overall Stats</h4>
-    <ul>
-      <li>Batting Avg (AVG): {{ batting_avg }}</li>
-      <li>On-Base % (OBP): {{ obp }}</li>
-      <li>Slugging % (SLG): {{ slg }}</li>
-      <li>OPS: {{ ops }}</li>
-      <li>ERA: {{ era }}</li>
-      <li>K/BB Ratio: {{ kbb }}</li>
-      <li>At Bats: {{ overall_stats.at_bats|default:0 }}</li>
-      <li>Hits: {{ overall_stats.hits|default:0 }}</li>
-      <li>Runs: {{ overall_stats.runs|default:0 }}</li>
-      <li>RBIs: {{ overall_stats.rbis|default:0 }}</li>
-      <li>Home Runs: {{ overall_stats.home_runs|default:0 }}</li>
-      <li>Strikeouts: {{ overall_stats.strikeouts|default:0 }}</li>
-      <li>Walks: {{ overall_stats.base_on_balls|default:0 }}</li>
-    </ul>
+<div class="border p-3 mb-4" style="border: 1px solid #000; border-radius: 5px;">
+  <div class="row">
+    <div class="col-md-6">
+      <p><strong>Batting Avg (AVG):</strong> {{ batting_avg }}</p>
+      <p><strong>On-Base % (OBP):</strong> {{ obp }}</p>
+      <p><strong>Slugging % (SLG):</strong> {{ slg }}</p>
+      <p><strong>OPS:</strong> {{ ops }}</p>
+      <p><strong>ERA:</strong> {{ era }}</p>
+      <p><strong>K/BB Ratio:</strong> {{ kbb }}</p>
+    </div>
+    <div class="col-md-6">
+      <p><strong>At Bats:</strong> {{ overall_stats.at_bats|default:0 }}</p>
+      <p><strong>Hits:</strong> {{ overall_stats.hits|default:0 }}</p>
+      <p><strong>Runs:</strong> {{ overall_stats.runs|default:0 }}</p>
+      <p><strong>RBIs:</strong> {{ overall_stats.rbis|default:0 }}</p>
+      <p><strong>Home Runs:</strong> {{ overall_stats.home_runs|default:0 }}</p>
+      <p><strong>Walks:</strong> {{ overall_stats.base_on_balls|default:0 }}</p>
+    </div>
+  </div>
+</div>
+
 
     <h4>📅 Game History by Team</h4>
     {% for team_name, stats in team_games.items %}
