@@ -13,6 +13,8 @@ from django.shortcuts import render
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
+from collections import defaultdict
+
 @login_required
 def player_dashboard(request):
     user = request.user
@@ -24,8 +26,18 @@ def player_dashboard(request):
             "error": "Your account is not associated with a player profile."
         })
 
+    # Game stats
     game_stats = PlayerGameStat.objects.select_related("game").filter(player=player).order_by("-game__date")
 
+    # Group stats by team
+    team_games = defaultdict(list)
+    for stat in game_stats:
+        for team in player.teams.all():
+            if stat.game.team_home_id == team.id or stat.game.team_away_id == team.id:
+                team_games[team.name].append(stat)
+
+
+    # Aggregate stats
     agg = game_stats.aggregate(
         at_bats=Coalesce(Sum("at_bats"), 0),
         hits=Coalesce(Sum("hits"), 0),
@@ -45,6 +57,7 @@ def player_dashboard(request):
         strikeouts_pitching=Coalesce(Sum("strikeouts_pitching"), 0),
     )
 
+    # Calculated stats
     ab = agg["at_bats"] or 1
     avg = round(agg["hits"] / ab, 3)
     tb = agg["singles"] + 2 * agg["doubles"] + 3 * agg["triples"] + 4 * agg["home_runs"]
@@ -55,9 +68,14 @@ def player_dashboard(request):
     era = round((agg["earned_runs"] * 9) / agg["innings_pitched"], 2) if agg["innings_pitched"] else 0
     kbb = round(agg["strikeouts_pitching"] / agg["walks_allowed"], 2) if agg["walks_allowed"] else 0
 
+
+
+    team_games = dict(team_games)
+
     return render(request, "league/player_dashboard.html", {
         "player": player,
         "game_stats": game_stats,
+        "team_games": team_games,
         "overall_stats": agg,
         "batting_avg": avg,
         "slg": slg,
