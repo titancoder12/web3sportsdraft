@@ -263,8 +263,9 @@ def player_detail(request, player_id):
 
 @login_required
 def dashboard(request, division_id=None):
-    if hasattr(request.user, 'player_profile'):
-        return redirect('player_profile')
+    if hasattr(request.user, 'player_profile'): # given user, reverse lookup to player profile gets player
+        #return redirect('player_profile')
+        return redirect('player_dashboard')
 
     user = request.user
 
