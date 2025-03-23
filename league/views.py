@@ -281,6 +281,12 @@ def dashboard(request, division_id=None):
         #return redirect('player_profile')
         return redirect('player_dashboard')
 
+    #if request.user.teams.exists():
+    #    return redirect('coach_dashboard')
+    # Only redirect coaches if this is NOT a specific division view
+    if not division_id and request.user.teams.exists():
+        return redirect('coach_dashboard')
+
     user = request.user
 
     # Get divisions the user can access
