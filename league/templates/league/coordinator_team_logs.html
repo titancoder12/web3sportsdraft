@@ -1,0 +1,23 @@
+{% extends "league/base.html" %}
+{% block content %}
+<div class="container">
+  <h2>Team Logs for {{ team.name }}</h2>
+  <a href="{% url 'dashboard_with_division' team.division.id %}" class="btn btn-sm btn-secondary mb-3">← Back to Division</a>
+
+  {% if logs %}
+    <ul class="list-group">
+      {% for log in logs %}
+        <li class="list-group-item">
+          <strong>{{ log.date }} — {{ log.log_type|title }}</strong><br>
+          {{ log.notes|linebreaksbr }}
+          <div class="text-muted small mt-1">
+            Entered by {{ log.coach.username }} on {{ log.created_at|date:'M d, Y H:i' }}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No logs for this team yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -18,6 +18,30 @@ from league.models import TeamLog
 
 from django.utils import timezone
 
+
+@login_required
+def coordinator_team_logs(request, team_id):
+    team = get_object_or_404(Team, id=team_id)
+    user = request.user
+
+    # Check if user is a coordinator of this team's division OR a coach of this team
+    is_coordinator = team.division.coordinators.filter(id=user.id).exists()
+    is_coach = team.coaches.filter(id=user.id).exists()
+
+    if not (is_coordinator or is_coach):
+        return render(request, "league/no_permission.html", {
+            "message": "You do not have access to this team's logs."
+        })
+
+    logs = TeamLog.objects.filter(team=team).select_related("coach").order_by("-date")
+
+    return render(request, "league/coordinator_team_logs.html", {
+        "team": team,
+        "logs": logs,
+        "is_coordinator": is_coordinator,
+        "is_coach": is_coach,
+    })
+
 @login_required
 def delete_player_log(request, log_id):
     log = get_object_or_404(PlayerLog, id=log_id, coach=request.user)

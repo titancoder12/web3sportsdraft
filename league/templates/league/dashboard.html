@@ -66,12 +66,14 @@
                 <h2>Teams</h2>
                 <div class="accordion" id="teamsAccordion">
                     {% for team in teams %}
+
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="heading{{ team.id }}">
                                 <button class="accordion-button {% if forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ team.id }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ team.id }}">
                                     {{ team.name }} ({{ team.players.count }}/{{ team.max_players }})
                                 </button>
                             </h2>
+
                             <div id="collapse{{ team.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ team.id }}" data-bs-parent="#teamsAccordion">
                                 <div class="accordion-body">
                                     <p><strong>Coaches:</strong> 
@@ -80,6 +82,7 @@
                                         {% empty %}
                                             None
                                         {% endfor %}
+                                        <a href="{% url 'coordinator_team_logs' team.id %}" class="btn btn-sm btn-outline-primary">View Team Logs</a>
                                     </p>
                                     <div class="team-roster">
                                         {% for player in team_rosters|get_item:team.id %}
