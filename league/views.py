@@ -1,7 +1,7 @@
 # league/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse  # Ensure this line is present
-from .models import Team, Player, DraftPick, Division, PlayerGameStat, Game, PlayerLog
+from .models import Team, Player, DraftPick, Division, PlayerGameStat, Game, PlayerLog, PlayerNote, PlayerJournalEntry
 from django.contrib.auth.decorators import login_required
 from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm, PlayerCSVUploadForm
 from django.contrib.auth.models import User
@@ -18,6 +18,7 @@ from league.models import TeamLog
 
 from django.utils import timezone
 
+
 @login_required
 def player_logs_view(request):
     if not hasattr(request.user, 'player_profile'):
@@ -26,13 +27,32 @@ def player_logs_view(request):
     player = request.user.player_profile
     teams = player.teams.all()
 
+    # Fetch logs
     team_logs = TeamLog.objects.filter(team__in=teams).select_related("team", "coach")
     player_logs = PlayerLog.objects.filter(player=player).select_related("team", "coach")
+
+    # Handle note save
+    #note, _ = PlayerNote.objects.get_or_create(player=player)
+    #if request.method == "POST":
+    #    note.content = request.POST.get("note", "")
+    #    note.save()
+    #    return redirect("player_logs")
+    
+
+    if request.method == "POST":
+        content = request.POST.get("note", "").strip()
+        if content:
+            PlayerJournalEntry.objects.create(player=player, content=content)
+        return redirect("player_logs")
+
+    journal_entries = PlayerJournalEntry.objects.filter(player=player).order_by("-created_at")
 
     return render(request, "league/player_logs.html", {
         "player": player,
         "team_logs": team_logs,
         "player_logs": player_logs,
+        #"player_note": note,
+        "journal_entries": journal_entries,
     })
 
 

@@ -170,6 +170,24 @@ class PlayerLog(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.player} - {self.log_type}"
+    
+
+class PlayerNote(models.Model):
+    player = models.OneToOneField("Player", on_delete=models.CASCADE, related_name="notes")
+    content = models.TextField(blank=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Notes for {self.player}"
+
+class PlayerJournalEntry(models.Model):
+    player = models.ForeignKey("Player", on_delete=models.CASCADE, related_name="journal_entries")
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Journal Entry on {self.created_at:%Y-%m-%d}"
+
 
 
 
