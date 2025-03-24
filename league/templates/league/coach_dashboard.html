@@ -27,11 +27,12 @@
   <div class="card my-4">
     <div class="card-header">
       <strong>{{ team.name }}</strong> ({{ team.division.name }})
+      <a
+        href="{% url 'team_logs' team.id %}"
+        class="btn btn-sm btn-outline-primary ms-4"
+        >View Team Logs</a
+      >
     </div>
-
-
-<a href="{% url 'team_logs' team.id %}" class="btn btn-sm btn-outline-primary">View Logs</a>
-
 
     <div class="card-body">
       <h5>Players:</h5>
