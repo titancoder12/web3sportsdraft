@@ -62,7 +62,7 @@ def add_team_log(request, team_id):
             date=request.POST.get("date"),
             notes=request.POST.get("notes"),
         )
-    return redirect("coach_dashboard")
+    return redirect("team_logs", team_id=team.id)
 
 @login_required
 def coach_dashboard(request):
