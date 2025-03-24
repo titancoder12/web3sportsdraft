@@ -39,21 +39,38 @@
 <body>
     <div class="container mt-5">
         <!-- Marketing Section -->
-        <div class="marketing-section text-center">
-            <img src="{% static 'league/images/logo.png' %}" alt="Web3Sports Logo" class="logo-img mb-3">
-            <h2>Web3Sports Player Development</h2>
-            <p class="lead">Track player development on the blockchain</p>
-            <ul class="list-unstyled">
-                <li><strong>Ownership:</strong>You own your data. Take control of your performance history — it's yours, forever.</li>
-                <li><strong>Immutable:</strong>Your progress, permanently recorded. Track your development across your entire career.</li>
-                <li><strong>Verifiable:</strong>Trusted and transparent. Every stat and achievement is backed by blockchain proof.</li>
-                <li><strong>Rewards:</strong>Get rewarded for your grind. Earn badges, tokens, and real gears. (Coming soon).</li>
-                <li><strong>Open Source:</strong> <a href="https://github.com/titancoder12/web3sportsdraft/tree/main" target="_blank">See how I built this</a></li>
-            </ul>
-            <!-- 
-            <p class="mt-3 fst-italic">“See the action unfold—check out the live draft!”</p>
-            <a href="{% url 'public_draft_with_division' 1 %}" class="btn btn-outline-primary">View Public Draft</a> -->
+        <div class="marketing-section text-center py-4 px-3">
+            <img src="{% static 'league/images/logo.png' %}" alt="Web3Sports Logo" class="mb-3" style="max-width: 120px;">
+            
+            <h2 class="mb-2 fw-bold">My Development Platform</h2>
+            <p class="text-muted mb-2 small">Track your growth as a baseball player.</p>
+            <p class="text-muted mb-3 small">Own your journey — powered by blockchain and AI.</p>
+        
+            <div class="text-start mx-auto" style="max-width: 650px;">
+                <ul class="list-unstyled small">
+                    <li class="mb-3">
+                        <strong>🏆 Ownership:</strong> Your data belongs to <em>you</em>. Your performance history stays with you — always.
+                    </li>
+                    <li class="mb-3">
+                        <strong>🔒 Immutable:</strong> Your progress is permanently recorded on the blockchain and can’t be lost.
+                    </li>
+                    <li class="mb-3">
+                        <strong>✅ Verifiable:</strong> Every stat and achievement is backed by transparent blockchain proof.
+                    </li>
+                    <li class="mb-3">
+                        <strong>🧠 AI Insights:</strong> Machine Learning helps break down your performance and guide smarter training.
+                    </li>
+                    <li class="mb-3">
+                        <strong>🎯 Rewards:</strong> Earn tokens, unlock real gear, and level up your game. *(Coming soon!)*
+                    </li>
+                    <li class="mb-1">
+                        <strong>💻 Open Source:</strong> 
+                        <a href="https://github.com/titancoder12/web3sportsdraft/tree/main" target="_blank">See how I built this</a>
+                    </li>
+                </ul>
+            </div>
         </div>
+         
         <!-- Login Form -->
         <div class="row justify-content-center">
             <div class="col-md-6">
