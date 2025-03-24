@@ -393,8 +393,27 @@ def import_players(request):
 
 @login_required
 def player_detail(request, player_id):
+    user = request.user
     player = get_object_or_404(Player, id=player_id)
-    return render(request, 'league/player_detail.html', {'player': player})
+
+    # Coach access: Is user a coach of any of the player's teams?
+    player_team_ids = player.teams.values_list("id", flat=True)
+    is_coach = Team.objects.filter(id__in=player_team_ids, coaches=user).exists()
+
+    # Coordinator access: Is user a coordinator of the player's division?
+    is_coordinator = player.division.coordinators.filter(id=user.id).exists()
+
+    if not (is_coach or is_coordinator):
+        return render(request, "league/no_permission.html", {
+            "message": "You do not have access to this player's details."
+        })
+
+    # User is allowed — render the page
+    return render(request, "league/player_detail.html", {
+        "player": player,
+        "is_coach": is_coach,
+        "is_coordinator": is_coordinator,
+    })
 
 @login_required
 def dashboard(request, division_id=None):
