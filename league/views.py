@@ -398,18 +398,19 @@ def player_detail(request, player_id):
 
 @login_required
 def dashboard(request, division_id=None):
-    if hasattr(request.user, 'player_profile'): # given user, reverse lookup to player profile gets player
-        #return redirect('player_profile')
-        return redirect('player_dashboard')
-
-    #if request.user.teams.exists():
-    #    return redirect('coach_dashboard')
-    # Only redirect coaches if this is NOT a specific division view
-    if not division_id and request.user.teams.exists():
-        return redirect('coach_dashboard')
-
     user = request.user
 
+    # If user is a player
+    if hasattr(user, 'player_profile'):
+        return redirect('player_dashboard')
+
+    # If user is a coordinator
+    is_coordinator = Division.objects.filter(coordinators=user).exists()
+    is_coach = user.teams.exists()
+
+    # If user is only a coach and not a coordinator, redirect to coach dashboard
+    if is_coach and not is_coordinator and not division_id:
+        return redirect('coach_dashboard')
     # Get divisions the user can access
     coach_divisions = Division.objects.filter(teams__coaches=user).distinct()
     coordinator_divisions = Division.objects.filter(coordinators=user).distinct()

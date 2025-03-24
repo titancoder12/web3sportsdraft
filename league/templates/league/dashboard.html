@@ -30,6 +30,10 @@
     <div class="container mt-4">
         <!-- Header Section -->
         <div class="header-section">
+
+                {% if is_coach %}
+                <a href="{% url 'coach_dashboard' %}" class="btn btn-sm btn-outline-primary mb-3">Switch to Coach Dashboard</a>
+                {% endif %}
             <h1 class="display-5">{{ division }}</h1>
             <p class="lead"><strong>Draft Status:</strong> {% if division.is_open %}Open{% else %}Closed{% endif %}</p>
             <div class="d-flex flex-wrap gap-2 align-items-center">
