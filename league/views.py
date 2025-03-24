@@ -19,6 +19,27 @@ from league.models import TeamLog
 from django.utils import timezone
 
 @login_required
+def edit_team_log(request, log_id):
+    log = get_object_or_404(TeamLog, id=log_id, coach=request.user)
+    if request.method == "POST":
+        log.log_type = request.POST.get("log_type")
+        log.date = request.POST.get("date")
+        log.notes = request.POST.get("notes")
+        log.save()
+        return redirect("team_logs", team_id=log.team.id)
+
+    return render(request, "league/edit_team_log.html", {"log": log})
+
+@login_required
+def delete_team_log(request, log_id):
+    log = get_object_or_404(TeamLog, id=log_id, coach=request.user)
+    team_id = log.team.id
+    if request.method == "POST":
+        log.delete()
+    return redirect("team_logs", team_id=team_id)
+
+
+@login_required
 def team_logs_view(request, team_id):
     team = get_object_or_404(Team, id=team_id, coaches=request.user)
     logs = TeamLog.objects.filter(team=team).order_by('-date')

@@ -1,0 +1,25 @@
+{% extends 'league/base.html' %}
+{% block content %}
+<div class="container">
+  <h2>Edit Log for {{ log.team.name }}</h2>
+  <form method="post" class="card card-body">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-md-3 mb-2">
+        <select name="log_type" class="form-select" required>
+          <option value="practice" {% if log.log_type == "practice" %}selected{% endif %}>Practice</option>
+          <option value="game" {% if log.log_type == "game" %}selected{% endif %}>Game</option>
+        </select>
+      </div>
+      <div class="col-md-3 mb-2">
+        <input type="date" name="date" class="form-control" value="{{ log.date }}" required>
+      </div>
+      <div class="col-md-6 mb-2">
+        <textarea name="notes" class="form-control" required>{{ log.notes }}</textarea>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm">Update Log</button>
+    <a href="{% url 'team_logs' log.team.id %}" class="btn btn-sm btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

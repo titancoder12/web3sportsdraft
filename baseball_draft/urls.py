@@ -51,5 +51,6 @@ urlpatterns += [
     path('coach/dashboard/', views.coach_dashboard, name='coach_dashboard'),
     path('coach/team/<int:team_id>/add-log/', views.add_team_log, name='add_team_log'),
     path("coach/team/<int:team_id>/logs/", views.team_logs_view, name="team_logs"),
-
+    path("coach/team/log/<int:log_id>/edit/", views.edit_team_log, name="edit_team_log"),
+    path("coach/team/log/<int:log_id>/delete/", views.delete_team_log, name="delete_team_log"),
 ]
