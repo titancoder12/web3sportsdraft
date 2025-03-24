@@ -150,3 +150,26 @@ class TeamLog(models.Model):
         ordering = ['-date']
 
 
+class PlayerLog(models.Model):
+    player = models.ForeignKey("Player", on_delete=models.CASCADE)
+    team = models.ForeignKey("Team", on_delete=models.CASCADE)
+    coach = models.ForeignKey(User, on_delete=models.CASCADE)
+    log_type = models.CharField(max_length=10, choices=[
+        ("practice", "Practice"),
+        ("game", "Game"),
+        ("training", "Training"),
+    ])
+    date = models.DateField()
+    notes = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+        verbose_name = "Player Log"
+        verbose_name_plural = "Player Logs"
+
+    def __str__(self):
+        return f"{self.date} - {self.player} - {self.log_type}"
+
+
+

@@ -1,7 +1,7 @@
 # league/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse  # Ensure this line is present
-from .models import Team, Player, DraftPick, Division, PlayerGameStat, Game
+from .models import Team, Player, DraftPick, Division, PlayerGameStat, Game, PlayerLog
 from django.contrib.auth.decorators import login_required
 from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm, PlayerCSVUploadForm
 from django.contrib.auth.models import User
@@ -17,6 +17,74 @@ from collections import defaultdict
 from league.models import TeamLog
 
 from django.utils import timezone
+
+@login_required
+def delete_player_log(request, log_id):
+    log = get_object_or_404(PlayerLog, id=log_id, coach=request.user)
+    player_id = log.player.id
+    if request.method == "POST":
+        log.delete()
+    return redirect("coach_player_detail", player_id=player_id)
+
+
+@login_required
+def edit_player_log(request, log_id):
+    log = get_object_or_404(PlayerLog, id=log_id, coach=request.user)
+    if request.method == "POST":
+        log.log_type = request.POST.get("log_type")
+        log.date = request.POST.get("date")
+        log.notes = request.POST.get("notes")
+        log.save()
+        return redirect("coach_player_detail", player_id=log.player.id)
+
+    return render(request, "league/edit_player_log.html", {
+        "log": log
+    })
+
+
+@login_required
+def add_player_log(request, player_id):
+    player = get_object_or_404(Player, id=player_id)
+    user = request.user
+    team_id = request.POST.get("team_id")
+
+    # Make sure the coach is allowed to log for this team
+    team = get_object_or_404(Team, id=team_id, coaches=user)
+
+    if request.method == "POST":
+        PlayerLog.objects.create(
+            player=player,
+            team=team,
+            coach=user,
+            log_type=request.POST.get("log_type"),
+            date=request.POST.get("date"),
+            notes=request.POST.get("notes"),
+        )
+    return redirect("coach_player_detail", player_id=player.id)
+
+
+@login_required
+def coach_player_detail(request, player_id):
+    player = get_object_or_404(Player, id=player_id)
+    user = request.user
+
+    # Get teams this coach has coached
+    coached_teams = user.teams.all()
+
+    # Filter logs: only logs for teams this coach has coached
+    visible_logs = PlayerLog.objects.filter(
+        player=player,
+        team__in=coached_teams
+    ).select_related('coach', 'team')
+
+    # Filter teams this coach has coached AND the player was part of
+    shared_teams = player.teams.filter(id__in=coached_teams.values_list("id", flat=True))
+
+    return render(request, "league/coach_player_detail.html", {
+        "player": player,
+        "visible_logs": visible_logs,
+        "shared_teams": shared_teams,
+    })
 
 @login_required
 def edit_team_log(request, log_id):

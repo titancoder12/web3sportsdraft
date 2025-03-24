@@ -1,0 +1,75 @@
+{% extends 'league/base.html' %}
+{% block content %}
+<div class="container">
+  <h2>{{ player.first_name }} {{ player.last_name }} — Logs</h2>
+
+  <a href="{% url 'coach_dashboard' %}" class="btn btn-sm btn-secondary mb-4">← Back to Dashboard</a>
+
+  {% if shared_teams %}
+    <p><strong>Teams this player played on that you coached:</strong>
+      {{ shared_teams|join:", " }}
+    </p>
+  {% else %}
+    <div class="alert alert-warning">
+      You did not coach this player on any team. You may not be able to view or add logs.
+    </div>
+  {% endif %}
+
+  <!-- Add new log form -->
+  <form method="post" action="{% url 'add_player_log' player.id %}" class="card card-body mb-4">
+    {% csrf_token %}
+    <h5>Add Player Log</h5>
+    <div class="row">
+      <div class="col-md-3 mb-2">
+        <select name="team_id" class="form-select" required>
+          <option value="">Select Team</option>
+          {% for team in shared_teams %}
+            <option value="{{ team.id }}">{{ team.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3 mb-2">
+        <select name="log_type" class="form-select" required>
+          <option value="practice">Practice</option>
+          <option value="game">Game</option>
+          <option value="training">Training</option>
+        </select>
+      </div>
+      <div class="col-md-3 mb-2">
+        <input type="date" name="date" class="form-control" required>
+      </div>
+      <div class="col-md-12 mb-2">
+        <textarea name="notes" class="form-control" placeholder="Enter log notes..." required></textarea>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm w-auto">Add Log</button>
+  </form>
+
+  <!-- List of logs -->
+  {% if visible_logs %}
+    <ul class="list-group">
+      {% for log in visible_logs %}
+        <li class="list-group-item">
+          <strong>{{ log.date }} — {{ log.log_type|title }} ({{ log.team.name }})</strong><br>
+          {{ log.notes|linebreaksbr }}
+          <div class="text-muted small mt-1">
+            Entered by {{ log.coach.username }} on {{ log.created_at|date:'M d, Y H:i' }}
+          </div>
+
+          {% if log.coach == user %}
+            <div class="mt-2">
+              <a href="{% url 'edit_player_log' log.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+              <form method="post" action="{% url 'delete_player_log' log.id %}" class="d-inline">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this log?');">Delete</button>
+              </form>
+            </div>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No logs yet for this player.</p>
+  {% endif %}
+</div>
+{% endblock %}

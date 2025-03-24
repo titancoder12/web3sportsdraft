@@ -1,0 +1,27 @@
+{% extends 'league/base.html' %}
+{% block content %}
+<div class="container">
+  <h2>Edit Log for {{ log.player.first_name }} {{ log.player.last_name }}</h2>
+
+  <form method="post" class="card card-body">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-md-3 mb-2">
+        <select name="log_type" class="form-select" required>
+          <option value="practice" {% if log.log_type == "practice" %}selected{% endif %}>Practice</option>
+          <option value="game" {% if log.log_type == "game" %}selected{% endif %}>Game</option>
+          <option value="training" {% if log.log_type == "training" %}selected{% endif %}>Training</option>
+        </select>
+      </div>
+      <div class="col-md-3 mb-2">
+        <input type="date" name="date" class="form-control" value="{{ log.date }}" required>
+      </div>
+      <div class="col-md-12 mb-2">
+        <textarea name="notes" class="form-control" required>{{ log.notes }}</textarea>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-sm btn-primary w-auto">Update Log</button>
+    <a href="{% url 'coach_player_detail' log.player.id %}" class="btn btn-sm btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

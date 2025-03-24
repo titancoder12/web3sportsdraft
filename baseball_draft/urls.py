@@ -53,4 +53,10 @@ urlpatterns += [
     path("coach/team/<int:team_id>/logs/", views.team_logs_view, name="team_logs"),
     path("coach/team/log/<int:log_id>/edit/", views.edit_team_log, name="edit_team_log"),
     path("coach/team/log/<int:log_id>/delete/", views.delete_team_log, name="delete_team_log"),
+    path("coach/player/<int:player_id>/", views.coach_player_detail, name="coach_player_detail"),
+    path("coach/player/<int:player_id>/add-log/", views.add_player_log, name="add_player_log"),
+    path("coach/player/log/<int:log_id>/edit/", views.edit_player_log, name="edit_player_log"),
+    path("coach/player/log/<int:log_id>/delete/", views.delete_player_log, name="delete_player_log"),
+
+
 ]

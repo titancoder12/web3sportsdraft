@@ -39,7 +39,7 @@
       <ul>
         {% for player in team.players.all %}
         <li>
-          <a href="{% url 'player_detail' player.id %}">
+          <a href="{% url 'coach_player_detail' player.id %}">
             {{ player.first_name }} {{ player.last_name }}
           </a>
         </li>
