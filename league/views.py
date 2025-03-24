@@ -409,10 +409,15 @@ def player_detail(request, player_id):
         })
 
     # User is allowed — render the page
+    # Only fetch logs for this player, for teams in their current division
+    team_ids_in_division = Team.objects.filter(division=player.division).values_list("id", flat=True)
+    player_logs = PlayerLog.objects.filter(player=player, team_id__in=team_ids_in_division).select_related("team", "coach")
+
     return render(request, "league/player_detail.html", {
         "player": player,
         "is_coach": is_coach,
         "is_coordinator": is_coordinator,
+        "player_logs": player_logs,
     })
 
 @login_required
