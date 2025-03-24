@@ -18,6 +18,23 @@ from league.models import TeamLog
 
 from django.utils import timezone
 
+@login_required
+def player_logs_view(request):
+    if not hasattr(request.user, 'player_profile'):
+        return redirect('dashboard')
+
+    player = request.user.player_profile
+    teams = player.teams.all()
+
+    team_logs = TeamLog.objects.filter(team__in=teams).select_related("team", "coach")
+    player_logs = PlayerLog.objects.filter(player=player).select_related("team", "coach")
+
+    return render(request, "league/player_logs.html", {
+        "player": player,
+        "team_logs": team_logs,
+        "player_logs": player_logs,
+    })
+
 
 @login_required
 def coordinator_team_logs(request, team_id):

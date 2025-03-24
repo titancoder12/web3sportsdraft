@@ -58,7 +58,6 @@ urlpatterns += [
     path("coach/player/log/<int:log_id>/edit/", views.edit_player_log, name="edit_player_log"),
     path("coach/player/log/<int:log_id>/delete/", views.delete_player_log, name="delete_player_log"),
     path('division/team/<int:team_id>/logs/', views.coordinator_team_logs, name='coordinator_team_logs'),
-
-
+    path("player/logs/", views.player_logs_view, name="player_logs"),
 
 ]
