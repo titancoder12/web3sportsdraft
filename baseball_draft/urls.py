@@ -59,5 +59,7 @@ urlpatterns += [
     path("coach/player/log/<int:log_id>/delete/", views.delete_player_log, name="delete_player_log"),
     path('division/team/<int:team_id>/logs/', views.coordinator_team_logs, name='coordinator_team_logs'),
     path("player/logs/", views.player_logs_view, name="player_logs"),
+    path('players/<int:player_id>/evaluations/', views.player_evaluations, name='player_evaluations'),
+    path('players/<int:player_id>/evaluations/<int:evaluation_id>/', views.get_evaluation_detail, name='evaluation_detail'),
 
 ]

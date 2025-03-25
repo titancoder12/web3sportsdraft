@@ -1,0 +1,108 @@
+{% extends "league/base.html" %} {% block content %}
+<div class="container py-5">
+  <h2 class="mb-4">
+    Performance Evaluations for {{ player.first_name }} {{ player.last_name }}
+  </h2>
+
+  <div class="btn-group mb-4" role="group">
+    <a
+      href="{% url 'player_dashboard' %}"
+      class="btn btn-outline-primary btn-sm"
+      >Dashboard</a
+    >
+    <a href="{% url 'player_logs' %}" class="btn btn-outline-primary btn-sm"
+      >My Logs</a
+    >
+    <a
+      href="{% url 'player_evaluations' player.id %}"
+      class="btn btn-outline-secondary btn-sm"
+    >
+      Performance Evaluations
+    </a>
+  </div>
+
+  <div class="mb-4">
+    <label for="evaluationSelect" class="form-label">Select Evaluation:</label>
+    <select id="evaluationSelect" class="form-select">
+      <option value="">-- Choose a date --</option>
+      {% for eval in evaluations %}
+      <option value="{{ eval.id }}">{{ eval.date }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div
+    id="evaluationDetail"
+    data-player-id="{{ player.id }}"
+    class="card shadow-sm p-4"
+  >
+    <h5 class="card-title mb-3">Evaluation Details</h5>
+    <div class="row">
+      <div class="col-md-6">
+        <p><strong>Date:</strong> <span id="evalDate">–</span></p>
+        <p><strong>Grip Strength:</strong> <span id="gripStrength">–</span></p>
+        <p><strong>Exit Velocity:</strong> <span id="exitVelo">–</span></p>
+        <p><strong>Bat Speed:</strong> <span id="batSpeed">–</span></p>
+        <p><strong>Shot Put:</strong> <span id="shotPut">–</span></p>
+        <p><strong>Lateral Jump:</strong> <span id="lateralJump">–</span></p>
+      </div>
+      <div class="col-md-6">
+        <p><strong>10-Yard Sprint:</strong> <span id="tenYards">–</span></p>
+        <p>
+          <strong>5-10-5 Yards:</strong> <span id="fiveTenFiveYards">–</span>
+        </p>
+        <p><strong>Catcher Pop Time:</strong> <span id="catcherPop">–</span></p>
+        <p>
+          <strong>Fielding Notes:</strong> <span id="fieldingNotes">–</span>
+        </p>
+        <p>
+          <strong>Pitching Comments:</strong>
+          <span id="pitchingComment">–</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document
+    .getElementById("evaluationSelect")
+    .addEventListener("change", function () {
+      const evalId = this.value;
+      const playerId =
+        document.getElementById("evaluationDetail").dataset.playerId;
+
+      if (evalId) {
+        fetch(`/players/${playerId}/evaluations/${evalId}/`)
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("evalDate").textContent = data.date || "–";
+            document.getElementById("gripStrength").textContent =
+              data.grip_strength ?? "–";
+            document.getElementById("exitVelo").textContent =
+              data.exit_velo ?? "–";
+            document.getElementById("batSpeed").textContent =
+              data.bat_speed ?? "–";
+            document.getElementById("shotPut").textContent =
+              data.shot_put ?? "–";
+            document.getElementById("lateralJump").textContent =
+              data.lateral_jump ?? "–";
+            document.getElementById("tenYards").textContent =
+              data.ten_yards ?? "–";
+            document.getElementById("fiveTenFiveYards").textContent =
+              data.five_ten_five_yards ?? "–";
+            document.getElementById("catcherPop").textContent =
+              data.catcher_pop ?? "–";
+            document.getElementById("fieldingNotes").textContent =
+              data.fielding_notes || "–";
+            document.getElementById("pitchingComment").textContent =
+              data.pitching_comment || "–";
+          });
+      } else {
+        document
+          .querySelectorAll("#evaluationDetail span")
+          .forEach((span) => (span.textContent = "–"));
+      }
+    });
+</script>
+{% endblock %}

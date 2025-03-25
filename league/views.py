@@ -1,7 +1,7 @@
 # league/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse  # Ensure this line is present
-from .models import Team, Player, DraftPick, Division, PlayerGameStat, Game, PlayerLog, PlayerNote, PlayerJournalEntry
+from .models import Team, Player, DraftPick, Division, PlayerGameStat, Game, PlayerLog, PlayerNote, PlayerJournalEntry, PerformanceEvaluation
 from django.contrib.auth.decorators import login_required
 from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm, PlayerCSVUploadForm
 from django.contrib.auth.models import User
@@ -17,6 +17,30 @@ from collections import defaultdict
 from league.models import TeamLog
 
 from django.utils import timezone
+
+
+def player_evaluations(request, player_id):
+    player = get_object_or_404(Player, id=player_id)
+    evaluations = player.evaluations.all()
+    return render(request, 'league/player_evaluations.html', {'player': player, 'evaluations': evaluations})
+
+def get_evaluation_detail(request, player_id, evaluation_id):
+    evaluation = get_object_or_404(PerformanceEvaluation, id=evaluation_id, player_id=player_id)
+
+    data = {
+        'date': evaluation.date,
+        'grip_strength': evaluation.grip_strength,
+        'exit_velo': evaluation.exit_velo,
+        'bat_speed': evaluation.bat_speed,
+        'shot_put': evaluation.shot_put,
+        'lateral_jump': evaluation.lateral_jump,
+        'ten_yards': evaluation.ten_yards,
+        'five_ten_five_yards': evaluation.five_ten_five_yards,
+        'catcher_pop': evaluation.catcher_pop,
+        'fielding_notes': evaluation.fielding_notes,
+        'pitching_comment': evaluation.pitching_comment,
+    }
+    return JsonResponse(data)
 
 
 @login_required
