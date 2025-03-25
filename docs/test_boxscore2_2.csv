@@ -1,0 +1,5 @@
+game_id,first_name,last_name,username,at_bats,runs,hits,rbis,singles,doubles,triples,home_runs,strikeouts,base_on_balls,hit_by_pitch,sacrifice_flies,innings_pitched,hits_allowed,runs_allowed,earned_runs,walks_allowed,strikeouts_pitching,home_runs_allowed,team_id,is_home,date,time,location
+6bd0e244-1bb2-4dfb-8c67-a2e3598bfdfa,Mia,Lopez,mialopez,4,0,1,0,1,0,0,0,0,1,1,0,1,2,2,2,1,1,0,5,TRUE,2025-03-23,18:00,Chaldecott South
+6bd0e244-1bb2-4dfb-8c67-a2e3598bfdfa,Garry,Cherry,garrycherry,3,0,1,0,1,0,0,0,2,0,0,0,0,0,0,0,0,0,0,5,TRUE,2025-03-23,18:00,Chaldecott South
+6bd0e244-1bb2-4dfb-8c67-a2e3598bfdfa,Jason,Bourne,jasonbourne,3,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,5,TRUE,2025-03-23,18:00,Chaldecott South
+6bd0e244-1bb2-4dfb-8c67-a2e3598bfdfa,Bobby,Carter,bobbycarter,3,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,5,TRUE,2025-03-23,18:00,Chaldecott South

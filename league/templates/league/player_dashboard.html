@@ -119,9 +119,7 @@
         <tr>
           <td>{{ stat.game.date|date:"Y-m-d" }}</td>
           <td>
-            {% if stat.game.team_home == player.teams.first %} {{
-            stat.game.team_away.name }} {% else %} {{ stat.game.team_home.name
-            }} {% endif %}
+            {% if stat.game.team_home == player.teams.first %} {{stat.game.team_away.name }} {% else %} {{ stat.game.team_home.name}} {% endif %}
           </td>
           <td>{{ stat.game.location }}</td>
           <td>

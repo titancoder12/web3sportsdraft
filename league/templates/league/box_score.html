@@ -16,7 +16,23 @@
     </style>
 </head>
 <body>
+
+
+
+
+
 <div class="container mt-5">
+
+
+    <div class="btn-group mb-4" role="group">
+        <a
+          href="{% url 'player_dashboard' %}"
+          class="btn btn-outline-primary btn-sm"
+          >Dashboard</a
+        >
+    </div>
+
+    
     <h1 class="mb-4">Box Score - Game {{ game.id }}</h1>
     <p><strong>Date:</strong> {{ game.date|date:"Y-m-d" }} | <strong>Time:</strong> {{ game.time }}</p>
     <p><strong>Location:</strong> {{ game.location }}</p>
