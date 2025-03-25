@@ -56,31 +56,34 @@
     >
       {% with games=games_by_team|get_item:team.id %}
         {% if games %}
-          <table class="table table-bordered table-sm bg-white">
-            <thead>
+          <table class="table table-bordered table-sm table-hover bg-white align-middle">
+            <thead class="table-light">
               <tr>
-                <th>Date</th>
-                <th>Opponent</th>
-                <th>Location</th>
-                <th>Box Score</th>
+                <th style="width: 20%;">Date</th>
+                <th style="width: 35%;">Opponent</th>
+                <th style="width: 25%;">Location</th>
+                <th style="width: 20%;">Box Score</th>
               </tr>
             </thead>
             <tbody>
               {% for game in games %}
-                <tr>
-                  <td>{{ game.date|date:"Y-m-d" }}</td>
-                  <td>
-                    {% if game.team_home == team %}
-                      {{ game.team_away.name }}
-                    {% else %}
-                      {{ game.team_home.name }}
-                    {% endif %}
-                  </td>
-                  <td>{{ game.location }}</td>
-                  <td>
-                    <a href="{% url 'box_score' game.id %}">View</a>
-                  </td>
-                </tr>
+                {% if game.team_home == team %}
+                  {% comment %} Team is home {% endcomment %}
+                  <tr class="table-primary">
+                    <td>{{ game.date|date:"Y-m-d" }}</td>
+                    <td>{{ game.team_away.name }}</td>
+                    <td>{{ game.location }}</td>
+                    <td><a href="{% url 'box_score' game.id %}">View</a></td>
+                  </tr>
+                {% else %}
+                  {% comment %} Team is away {% endcomment %}
+                  <tr class="table-warning">
+                    <td>{{ game.date|date:"Y-m-d" }}</td>
+                    <td>{{ game.team_home.name }}</td>
+                    <td>{{ game.location }}</td>
+                    <td><a href="{% url 'box_score' game.id %}">View</a></td>
+                  </tr>
+                {% endif %}
               {% endfor %}
             </tbody>
           </table>
@@ -89,7 +92,7 @@
         {% endif %}
       {% endwith %}
     </div>
-    
+     
 
     
   </div>
