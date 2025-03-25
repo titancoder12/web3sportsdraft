@@ -156,19 +156,117 @@ def coach_player_detail(request, player_id):
     # Get teams this coach has coached
     coached_teams = user.teams.all()
 
-    # Filter logs: only logs for teams this coach has coached
+    # Logs: only from teams the coach coached
     visible_logs = PlayerLog.objects.filter(
         player=player,
         team__in=coached_teams
     ).select_related('coach', 'team')
 
-    # Filter teams this coach has coached AND the player was part of
+    # Teams this coach coached AND the player was on
     shared_teams = player.teams.filter(id__in=coached_teams.values_list("id", flat=True))
+
+    # === Per-Team Stats ===
+    team_stats = []
+    for team in shared_teams:
+        stats_qs = PlayerGameStat.objects.filter(player=player).filter(
+            game__team_home=team
+        ) | PlayerGameStat.objects.filter(
+            player=player,
+            game__team_away=team
+        )
+
+        stats = stats_qs.aggregate(
+            games_played=Count('game', distinct=True),
+            at_bats=Sum('at_bats'),
+            hits=Sum('hits'),
+            runs=Sum('runs'),
+            rbis=Sum('rbis'),
+            home_runs=Sum('home_runs'),
+            base_on_balls=Sum('base_on_balls'),
+            strikeouts=Sum('strikeouts'),
+            innings_pitched=Sum('innings_pitched'),
+            earned_runs=Sum('earned_runs'),
+        )
+
+        ab = stats['at_bats'] or 0
+        hits = stats['hits'] or 0
+        bb = stats['base_on_balls'] or 0
+        slg = hits  # Replace with total bases for real SLG
+        obp = (hits + bb) / (ab + bb) if (ab + bb) > 0 else 0
+        avg = hits / ab if ab > 0 else 0
+        ops = obp + slg
+        era = (stats['earned_runs'] or 0) * 9 / (stats['innings_pitched'] or 1)
+
+        team_stats.append({
+            'team': team,
+            'games_played': stats['games_played'] or 0,
+            'at_bats': ab,
+            'hits': hits,
+            'runs': stats['runs'] or 0,
+            'rbis': stats['rbis'] or 0,
+            'home_runs': stats['home_runs'] or 0,
+            'base_on_balls': bb,
+            'strikeouts': stats['strikeouts'] or 0,
+            'avg': f"{avg:.3f}",
+            'obp': f"{obp:.3f}",
+            'slg': f"{slg:.3f}",
+            'ops': f"{ops:.3f}",
+            'era': f"{era:.2f}",
+        })
+
+    # === Overall Stats ===
+    overall_stats_qs = PlayerGameStat.objects.filter(
+        player=player,
+        game__team_home__in=shared_teams
+    ) | PlayerGameStat.objects.filter(
+        player=player,
+        game__team_away__in=shared_teams
+    )
+
+    overall = overall_stats_qs.aggregate(
+        games_played=Count('game', distinct=True),
+        at_bats=Sum('at_bats'),
+        hits=Sum('hits'),
+        runs=Sum('runs'),
+        rbis=Sum('rbis'),
+        home_runs=Sum('home_runs'),
+        base_on_balls=Sum('base_on_balls'),
+        strikeouts=Sum('strikeouts'),
+        innings_pitched=Sum('innings_pitched'),
+        earned_runs=Sum('earned_runs'),
+    )
+
+    ab = overall['at_bats'] or 0
+    hits = overall['hits'] or 0
+    bb = overall['base_on_balls'] or 0
+    slg = hits  # Replace with total bases for real SLG
+    obp = (hits + bb) / (ab + bb) if (ab + bb) > 0 else 0
+    avg = hits / ab if ab > 0 else 0
+    ops = obp + slg
+    era = (overall['earned_runs'] or 0) * 9 / (overall['innings_pitched'] or 1)
+
+    overall_stats = {
+        'games_played': overall['games_played'] or 0,
+        'at_bats': ab,
+        'hits': hits,
+        'runs': overall['runs'] or 0,
+        'rbis': overall['rbis'] or 0,
+        'home_runs': overall['home_runs'] or 0,
+        'base_on_balls': bb,
+        'strikeouts': overall['strikeouts'] or 0,
+        'avg': f"{avg:.3f}",
+        'obp': f"{obp:.3f}",
+        'slg': f"{slg:.3f}",
+        'ops': f"{ops:.3f}",
+        'era': f"{era:.2f}",
+    }
 
     return render(request, "league/coach_player_detail.html", {
         "player": player,
         "visible_logs": visible_logs,
         "shared_teams": shared_teams,
+        "team_stats": team_stats,
+        "overall_stats": overall_stats,
     })
 
 @login_required

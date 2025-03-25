@@ -15,6 +15,91 @@
     </div>
   {% endif %}
 
+
+  <h4 class="mt-5">📊 Overall Stats</h4>
+  <div class="p-3 mb-4 rounded" style="background-color: #e6f2ff; border: 1px solid #000">
+    <table class="table table-bordered table-sm bg-white mb-0">
+      <tbody>
+        <tr>
+          <th>Games</th>
+          <td>{{ overall_stats.games_played }}</td>
+          <th>AB</th>
+          <td>{{ overall_stats.at_bats }}</td>
+          <th>Hits</th>
+          <td>{{ overall_stats.hits }}</td>
+        </tr>
+        <tr>
+          <th>AVG</th>
+          <td>{{ overall_stats.avg }}</td>
+          <th>OBP</th>
+          <td>{{ overall_stats.obp }}</td>
+          <th>SLG</th>
+          <td>{{ overall_stats.slg }}</td>
+        </tr>
+        <tr>
+          <th>OPS</th>
+          <td>{{ overall_stats.ops }}</td>
+          <th>RBIs</th>
+          <td>{{ overall_stats.rbis }}</td>
+          <th>HR</th>
+          <td>{{ overall_stats.home_runs }}</td>
+        </tr>
+        <tr>
+          <th>ERA</th>
+          <td>{{ overall_stats.era }}</td>
+          <th>BB</th>
+          <td>{{ overall_stats.base_on_balls }}</td>
+          <th>K</th>
+          <td>{{ overall_stats.strikeouts }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+
+
+  <h4 class="mt-5">📊 Stats by Team</h4>
+<div class="p-3 mb-4 rounded" style="background-color: #e9fbe6; border: 1px solid #000">
+  <table class="table table-striped table-bordered bg-white table-sm">
+    <thead>
+      <tr>
+        <th>Team</th>
+        <th>Games</th>
+        <th>AB</th>
+        <th>H</th>
+        <th>AVG</th>
+        <th>OBP</th>
+        <th>SLG</th>
+        <th>OPS</th>
+        <th>RBIs</th>
+        <th>HR</th>
+        <th>ERA</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for stat in team_stats %}
+        <tr>
+          <td>{{ stat.team.name }}</td>
+          <td>{{ stat.games_played }}</td>
+          <td>{{ stat.at_bats }}</td>
+          <td>{{ stat.hits }}</td>
+          <td>{{ stat.avg }}</td>
+          <td>{{ stat.obp }}</td>
+          <td>{{ stat.slg }}</td>
+          <td>{{ stat.ops }}</td>
+          <td>{{ stat.rbis }}</td>
+          <td>{{ stat.home_runs }}</td>
+          <td>{{ stat.era }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+
+
+
   <!-- Add new log form -->
   <form method="post" action="{% url 'add_player_log' player.id %}" class="card card-body mb-4">
     {% csrf_token %}
