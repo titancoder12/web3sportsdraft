@@ -599,16 +599,122 @@ def player_detail(request, player_id):
             "message": "You do not have access to this player's details."
         })
 
-    # User is allowed — render the page
-    # Only fetch logs for this player, for teams in their current division
-    team_ids_in_division = Team.objects.filter(division=player.division).values_list("id", flat=True)
-    player_logs = PlayerLog.objects.filter(player=player, team_id__in=team_ids_in_division).select_related("team", "coach")
+    # Get teams in the player's division
+    teams_in_division = Team.objects.filter(division=player.division)
+    team_ids_in_division = teams_in_division.values_list("id", flat=True)
+
+    # Logs for this player, limited to teams in this division
+    player_logs = PlayerLog.objects.filter(
+        player=player,
+        team_id__in=team_ids_in_division
+    ).select_related("team", "coach")
+
+    # Filter to only player's teams in this division
+    player_division_teams = player.teams.filter(id__in=team_ids_in_division)
+
+    # === Per-Team Stats ===
+    team_stats = []
+    for team in player_division_teams:
+        stats_qs = PlayerGameStat.objects.filter(player=player).filter(
+            game__team_home=team
+        ) | PlayerGameStat.objects.filter(
+            player=player,
+            game__team_away=team
+        )
+
+        stats = stats_qs.aggregate(
+            games_played=Count('game', distinct=True),
+            at_bats=Sum('at_bats'),
+            hits=Sum('hits'),
+            runs=Sum('runs'),
+            rbis=Sum('rbis'),
+            home_runs=Sum('home_runs'),
+            base_on_balls=Sum('base_on_balls'),
+            strikeouts=Sum('strikeouts'),
+            innings_pitched=Sum('innings_pitched'),
+            earned_runs=Sum('earned_runs'),
+        )
+
+        ab = stats['at_bats'] or 0
+        hits = stats['hits'] or 0
+        bb = stats['base_on_balls'] or 0
+        slg = hits
+        obp = (hits + bb) / (ab + bb) if (ab + bb) > 0 else 0
+        avg = hits / ab if ab > 0 else 0
+        ops = obp + slg
+        era = (stats['earned_runs'] or 0) * 9 / (stats['innings_pitched'] or 1)
+
+        team_stats.append({
+            'team': team,
+            'games_played': stats['games_played'] or 0,
+            'at_bats': ab,
+            'hits': hits,
+            'runs': stats['runs'] or 0,
+            'rbis': stats['rbis'] or 0,
+            'home_runs': stats['home_runs'] or 0,
+            'base_on_balls': bb,
+            'strikeouts': stats['strikeouts'] or 0,
+            'avg': f"{avg:.3f}",
+            'obp': f"{obp:.3f}",
+            'slg': f"{slg:.3f}",
+            'ops': f"{ops:.3f}",
+            'era': f"{era:.2f}",
+        })
+
+    # === Overall Stats ===
+    overall_stats_qs = PlayerGameStat.objects.filter(
+        player=player,
+        game__team_home__in=player_division_teams
+    ) | PlayerGameStat.objects.filter(
+        player=player,
+        game__team_away__in=player_division_teams
+    )
+
+    overall = overall_stats_qs.aggregate(
+        games_played=Count('game', distinct=True),
+        at_bats=Sum('at_bats'),
+        hits=Sum('hits'),
+        runs=Sum('runs'),
+        rbis=Sum('rbis'),
+        home_runs=Sum('home_runs'),
+        base_on_balls=Sum('base_on_balls'),
+        strikeouts=Sum('strikeouts'),
+        innings_pitched=Sum('innings_pitched'),
+        earned_runs=Sum('earned_runs'),
+    )
+
+    ab = overall['at_bats'] or 0
+    hits = overall['hits'] or 0
+    bb = overall['base_on_balls'] or 0
+    slg = hits
+    obp = (hits + bb) / (ab + bb) if (ab + bb) > 0 else 0
+    avg = hits / ab if ab > 0 else 0
+    ops = obp + slg
+    era = (overall['earned_runs'] or 0) * 9 / (overall['innings_pitched'] or 1)
+
+    overall_stats = {
+        'games_played': overall['games_played'] or 0,
+        'at_bats': ab,
+        'hits': hits,
+        'runs': overall['runs'] or 0,
+        'rbis': overall['rbis'] or 0,
+        'home_runs': overall['home_runs'] or 0,
+        'base_on_balls': bb,
+        'strikeouts': overall['strikeouts'] or 0,
+        'avg': f"{avg:.3f}",
+        'obp': f"{obp:.3f}",
+        'slg': f"{slg:.3f}",
+        'ops': f"{ops:.3f}",
+        'era': f"{era:.2f}",
+    }
 
     return render(request, "league/player_detail.html", {
         "player": player,
         "is_coach": is_coach,
         "is_coordinator": is_coordinator,
         "player_logs": player_logs,
+        "team_stats": team_stats,
+        "overall_stats": overall_stats,
     })
 
 @login_required
