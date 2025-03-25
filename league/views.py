@@ -229,10 +229,18 @@ def coach_dashboard(request):
     # Get logs only for teams this coach is on
     team_logs = TeamLog.objects.filter(team__in=teams).select_related("team", "coach")
 
+    # Group games by team
+    games_by_team = defaultdict(list)
+    for team in teams:
+        team_games = Game.objects.filter(team_home=team) | Game.objects.filter(team_away=team)
+        team_games = team_games.order_by('-date').select_related('team_home', 'team_away')
+        games_by_team[team.id] = team_games
+
     return render(request, "league/coach_dashboard.html", {
         "teams": teams,
         "divisions": divisions,
         "team_logs": team_logs,
+         "games_by_team": games_by_team,
     })
 
 @login_required

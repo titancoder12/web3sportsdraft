@@ -1,5 +1,6 @@
 <!-- prettier-ignore -->
 {% extends 'league/base.html' %} {% block content %}
+{% load league_tags %}
 <div class="container">
   <h2>Coach Dashboard</h2>
 
@@ -46,6 +47,51 @@
         {% endfor %}
       </ul>
     </div>
+
+
+    <h5 class="mt-4">📅 Game History</h5>
+    <div
+      class="p-2 rounded"
+      style="background-color: #fff9e6; border: 1px solid #000"
+    >
+      {% with games=games_by_team|get_item:team.id %}
+        {% if games %}
+          <table class="table table-bordered table-sm bg-white">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Opponent</th>
+                <th>Location</th>
+                <th>Box Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for game in games %}
+                <tr>
+                  <td>{{ game.date|date:"Y-m-d" }}</td>
+                  <td>
+                    {% if game.team_home == team %}
+                      {{ game.team_away.name }}
+                    {% else %}
+                      {{ game.team_home.name }}
+                    {% endif %}
+                  </td>
+                  <td>{{ game.location }}</td>
+                  <td>
+                    <a href="{% url 'box_score' game.id %}">View</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="text-muted">No games recorded for this team.</p>
+        {% endif %}
+      {% endwith %}
+    </div>
+    
+
+    
   </div>
   {% endfor %} {% else %}
   <p>You are not assigned to any teams yet.</p>
