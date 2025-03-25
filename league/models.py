@@ -88,7 +88,24 @@ class Player(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.division})"
     
-from django.db import models
+
+class PerformanceEvaluation(models.Model):
+    player = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='evaluations')
+    date = models.DateField(auto_now_add=True)
+
+    grip_strength = models.FloatField(null=True, blank=True)
+    lateral_jump = models.FloatField(null=True, blank=True)
+    shot_put = models.FloatField(null=True, blank=True)
+    five_ten_five_yards = models.FloatField(null=True, blank=True)
+    ten_yards = models.FloatField(null=True, blank=True)
+    catcher_pop = models.FloatField(null=True, blank=True)
+    fielding_notes = models.TextField(blank=True)
+    exit_velo = models.FloatField(null=True, blank=True)
+    bat_speed = models.FloatField(null=True, blank=True)
+    pitching_comment = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-date']
 
 class Game(models.Model):
     game_id = models.CharField(max_length=50, unique=True)
