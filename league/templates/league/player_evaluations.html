@@ -30,40 +30,37 @@
       {% endfor %}
     </select>
   </div>
-
-  <div
-    id="evaluationDetail"
-    data-player-id="{{ player.id }}"
-    class="card shadow-sm p-4"
-  >
-    <h5 class="card-title mb-3">Evaluation Details</h5>
-    <div class="row">
-      <div class="col-md-6">
-        <p><strong>Date:</strong> <span id="evalDate">–</span></p>
-        <p><strong>Grip Strength:</strong> <span id="gripStrength">–</span></p>
-        <p><strong>Exit Velocity:</strong> <span id="exitVelo">–</span></p>
-        <p><strong>Bat Speed:</strong> <span id="batSpeed">–</span></p>
-        <p><strong>Shot Put:</strong> <span id="shotPut">–</span></p>
-        <p><strong>Lateral Jump:</strong> <span id="lateralJump">–</span></p>
-      </div>
-      <div class="col-md-6">
-        <p><strong>10-Yard Sprint:</strong> <span id="tenYards">–</span></p>
-        <p>
-          <strong>5-10-5 Yards:</strong> <span id="fiveTenFiveYards">–</span>
-        </p>
-        <p><strong>Catcher Pop Time:</strong> <span id="catcherPop">–</span></p>
-        <p>
-          <strong>Fielding Notes:</strong> <span id="fieldingNotes">–</span>
-        </p>
-        <p>
-          <strong>Pitching Comments:</strong>
-          <span id="pitchingComment">–</span>
-        </p>
-      </div>
+</div>
+<div
+  id="evaluationDetail"
+  data-player-id="{{ player.id }}"
+  class="card shadow-lg p-4 mt-4"
+  style="
+    background: linear-gradient(135deg, #f0f4ff, #e8f0fe);
+    border-radius: 1rem;
+  "
+>
+  <h5 class="card-title mb-4 text-primary fw-bold">Evaluation Details</h5>
+  <div class="row">
+    <div class="col-md-6">
+      <p><strong>Date:</strong> <span id="evalDate">–</span></p>
+      <p><strong>Grip Strength:</strong> <span id="gripStrength">–</span></p>
+      <p><strong>Exit Velocity:</strong> <span id="exitVelo">–</span></p>
+      <p><strong>Bat Speed:</strong> <span id="batSpeed">–</span></p>
+      <p><strong>Shot Put:</strong> <span id="shotPut">–</span></p>
+      <p><strong>Lateral Jump:</strong> <span id="lateralJump">–</span></p>
+    </div>
+    <div class="col-md-6">
+      <p><strong>10-Yard Sprint:</strong> <span id="tenYards">–</span></p>
+      <p><strong>5-10-5 Yards:</strong> <span id="fiveTenFiveYards">–</span></p>
+      <p><strong>Catcher Pop Time:</strong> <span id="catcherPop">–</span></p>
+      <p><strong>Fielding Notes:</strong> <span id="fieldingNotes">–</span></p>
+      <p>
+        <strong>Pitching Comments:</strong> <span id="pitchingComment">–</span>
+      </p>
     </div>
   </div>
 </div>
-
 <script>
   document
     .getElementById("evaluationSelect")

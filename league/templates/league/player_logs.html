@@ -1,68 +1,91 @@
-{% extends 'league/base.html' %}
-{% block content %}
+{% extends 'league/base.html' %} {% block content %}
 <div class="container">
   <h2>Welcome, {{ player.first_name }} {{ player.last_name }}</h2>
   <div class="btn-group mb-4" role="group">
-    <a href="{% url 'player_dashboard' %}" class="btn btn-outline-primary btn-sm">Dashboard</a>
-    <a href="{% url 'player_logs' %}" class="btn btn-outline-secondary btn-sm">My Logs</a>
+    <a
+      href="{% url 'player_dashboard' %}"
+      class="btn btn-outline-primary btn-sm"
+      >Dashboard</a
+    >
+    <a href="{% url 'player_logs' %}" class="btn btn-outline-secondary btn-sm"
+      >My Logs</a
+    >
+    <a
+      href="{% url 'player_evaluations' player.id %}"
+      class="btn btn-outline-primary btn-sm"
+    >
+      Performance Evaluations
+    </a>
   </div>
-
 
   <h4 class="mt-4">📋 Player Logs (Only for You)</h4>
   {% if player_logs %}
-    <ul class="list-group mb-4">
-      {% for log in player_logs %}
-        <li class="list-group-item">
-          <strong>{{ log.date }} — {{ log.log_type|title }} ({{ log.team.name }})</strong><br>
-          {{ log.notes|linebreaksbr }}
-          <div class="text-muted small mt-1">
-            Entered by {{ log.coach.username }} on {{ log.created_at|date:'M d, Y H:i' }}
-          </div>
-        </li>
-      {% endfor %}
-    </ul>
+  <ul class="list-group mb-4">
+    {% for log in player_logs %}
+    <li class="list-group-item">
+      <strong
+        >{{ log.date }} — {{ log.log_type|title }} ({{ log.team.name }})</strong
+      ><br />
+      {{ log.notes|linebreaksbr }}
+      <div class="text-muted small mt-1">
+        Entered by {{ log.coach.username }} on {{ log.created_at|date:'M d, Y
+        H:i' }}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
   {% else %}
-    <p class="text-muted">No personal logs available.</p>
+  <p class="text-muted">No personal logs available.</p>
   {% endif %}
 
   <h4>📒 Team Logs</h4>
   {% if team_logs %}
-    <ul class="list-group">
-      {% for log in team_logs %}
-        <li class="list-group-item">
-          <strong>{{ log.date }} — {{ log.log_type|title }} ({{ log.team.name }})</strong><br>
-          {{ log.notes|linebreaksbr }}
-          <div class="text-muted small mt-1">
-            Entered by {{ log.coach.username }} on {{ log.created_at|date:'M d, Y H:i' }}
-          </div>
-        </li>
-      {% endfor %}
-    </ul>
+  <ul class="list-group">
+    {% for log in team_logs %}
+    <li class="list-group-item">
+      <strong
+        >{{ log.date }} — {{ log.log_type|title }} ({{ log.team.name }})</strong
+      ><br />
+      {{ log.notes|linebreaksbr }}
+      <div class="text-muted small mt-1">
+        Entered by {{ log.coach.username }} on {{ log.created_at|date:'M d, Y
+        H:i' }}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
   {% else %}
-    <p class="text-muted">No team logs available.</p>
+  <p class="text-muted">No team logs available.</p>
   {% endif %}
 
   <h4 class="mt-4">🗒️ My Notes</h4>
 
-{% if journal_entries %}
+  {% if journal_entries %}
   <ul class="list-group">
     {% for entry in journal_entries %}
-      <li class="list-group-item">
-        <div class="text-muted small mb-1">{{ entry.created_at|date:"M d, Y H:i" }}</div>
-        {{ entry.content|linebreaksbr }}
-      </li>
+    <li class="list-group-item">
+      <div class="text-muted small mb-1">
+        {{ entry.created_at|date:"M d, Y H:i" }}
+      </div>
+      {{ entry.content|linebreaksbr }}
+    </li>
     {% endfor %}
   </ul>
-{% else %}
+  {% else %}
   <p class="text-muted">No journal entries yet.</p>
-{% endif %}
+  {% endif %}
 
-<form method="post" class="mb-3">
-  {% csrf_token %}
-  <textarea name="note" class="form-control mb-2" rows="4" placeholder="Write a new note..."></textarea>
-  <button type="submit" class="btn btn-sm btn-success w-auto">Save Entry</button>
-</form>
-
-
+  <form method="post" class="mb-3">
+    {% csrf_token %}
+    <textarea
+      name="note"
+      class="form-control mb-2"
+      rows="4"
+      placeholder="Write a new note..."
+    ></textarea>
+    <button type="submit" class="btn btn-sm btn-success w-auto">
+      Save Entry
+    </button>
+  </form>
 </div>
 {% endblock %}
