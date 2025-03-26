@@ -24,13 +24,22 @@
 <div class="container mt-5">
 
 
-    <div class="btn-group mb-4" role="group">
-        <a
-          href="{% url 'player_dashboard' %}"
-          class="btn btn-outline-primary btn-sm"
-          >Dashboard</a
-        >
-    </div>
+
+
+    {% if request.user.is_authenticated %}
+    {% if request.user.player_profile %}
+      <a href="{% url 'player_dashboard' %}" class="btn btn-secondary">← Back to Player Dashboard</a>
+    {% elif request.user.teams.exists %}
+      <a href="{% url 'coach_dashboard' %}" class="btn btn-secondary">← Back to Coach Dashboard</a>
+    {% elif request.user.coordinator_profile.divisions.exists %}
+      <a href="{% url 'dashboard_with_division' request.user.coordinator_profile.divisions.first.id %}" class="btn btn-secondary">
+        ← Back to Division Dashboard
+      </a>
+    {% else %}
+      <a href="/" class="btn btn-secondary">← Back</a>
+    {% endif %}
+  {% endif %}
+
 
     
     <h1 class="mb-4">Box Score - Game {{ game.id }}</h1>
