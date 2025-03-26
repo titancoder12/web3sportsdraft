@@ -53,9 +53,13 @@ def player_evaluations(request, player_id):
     # Access granted → show evaluations
     evaluations = player.evaluations.all().order_by("-date")
 
+    is_self = hasattr(user, 'player_profile') and user.player_profile.id == player.id # Add a flag to indicate if this is the player's own view
+
+
     return render(request, "league/player_evaluations.html", {
         "player": player,
         "evaluations": evaluations,
+        "is_self": is_self,
     })
 
 @login_required

@@ -5,6 +5,7 @@
   </h2>
 
   <div class="btn-group mb-4" role="group">
+    {% if is_self %}
     <a
       href="{% url 'player_dashboard' %}"
       class="btn btn-outline-primary btn-sm"
@@ -23,6 +24,10 @@
     <a href="{% url 'player_teams' %}" class="btn btn-outline-primary btn-sm">
       View My Teams
     </a>
+    {% else %}
+      <a href="{% url 'coach_dashboard' %}" class="btn btn-outline-secondary btn-sm">← Back to Coach Dashboard</a>
+      <a href="{% url 'coach_player_detail' player.id %}" class="btn btn-outline-primary btn-sm">Back to Player Logs</a>
+    {% endif %}
   </div>
 
   <div class="mb-4">
