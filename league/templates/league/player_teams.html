@@ -1,7 +1,36 @@
 {% extends 'league/base.html' %}
 {% block content %}
+
+
+
+
 <div class="container mt-4">
   <h2 class="mb-4">{{ player.first_name }} {{ player.last_name }} — My Teams</h2>
+
+
+
+  <div class="btn-group mb-4" role="group">
+    <a
+      href="{% url 'player_dashboard' %}"
+      class="btn btn-outline-primary btn-sm"
+      >Dashboard</a
+    >
+    <a href="{% url 'player_logs' %}" class="btn btn-outline-primary btn-sm"
+      >My Logs</a
+    >
+    <a
+      href="{% url 'player_evaluations' player.id %}"
+      class="btn btn-outline-primary btn-sm"
+    >
+      Performance Evaluations
+    </a>
+    <a href="{% url 'player_teams' %}" class="btn btn-outline-secondary btn-sm">
+      View My Teams
+    </a>
+
+  </div>
+
+
 
   {% for team in teams %}
     <div class="card mb-4 shadow-sm">
@@ -10,27 +39,36 @@
         <span class="text-muted">{{ team.division.name }}</span>
       </div>
       <div class="card-body">
+        <!-- Coaches -->
         <h6 class="text-primary">👨‍🏫 Coaches:</h6>
         <ul>
           {% for coach in team.coaches.all %}
-
             <li>
+              {% if coach.first_name or coach.last_name %}
                 {{ coach.first_name }} {{ coach.last_name }}
-                {% if not coach.first_name and not coach.last_name %}
-                  ({{ coach.username }})
-                {% endif %}
-              </li>
-
+              {% else %}
+                {{ coach.username }}
+              {% endif %}
+              {% if coach.email %}
+                ({{ coach.email }})
+              {% endif %}
+            </li>
           {% empty %}
             <li class="text-muted">No coaches assigned</li>
           {% endfor %}
         </ul>
 
+        <!-- Teammates -->
         <h6 class="text-success mt-3">🧢 Teammates:</h6>
         <ul>
           {% for teammate in team.players.all %}
             {% if teammate != player %}
-              <li>{{ teammate.first_name }} {{ teammate.last_name }}</li>
+              <li>
+                {{ teammate.first_name }} {{ teammate.last_name }}
+                {% if teammate.user and teammate.user.email %}
+                  ({{ teammate.user.email }})
+                {% endif %}
+              </li>
             {% endif %}
           {% empty %}
             <li class="text-muted">No other teammates yet</li>
@@ -40,6 +78,5 @@
     </div>
   {% endfor %}
 
-  <a href="{% url 'player_dashboard' %}" class="btn btn-secondary mt-4">← Back to Dashboard</a>
 </div>
 {% endblock %}
