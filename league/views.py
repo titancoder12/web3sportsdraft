@@ -19,11 +19,23 @@ from league.models import TeamLog
 from django.utils import timezone
 
 
+@login_required
+def player_teams_view(request):
+    player = request.user.player_profile  # assumes OneToOneField to User
+    teams = player.teams.prefetch_related("coaches", "players", "division")
+
+    return render(request, "league/player_teams.html", {
+        "player": player,
+        "teams": teams,
+    })
+
+@login_required
 def player_evaluations(request, player_id):
     player = get_object_or_404(Player, id=player_id)
     evaluations = player.evaluations.all()
     return render(request, 'league/player_evaluations.html', {'player': player, 'evaluations': evaluations})
 
+@login_required
 def get_evaluation_detail(request, player_id, evaluation_id):
     evaluation = get_object_or_404(PerformanceEvaluation, id=evaluation_id, player_id=player_id)
 

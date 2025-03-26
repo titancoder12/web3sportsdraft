@@ -61,5 +61,7 @@ urlpatterns += [
     path("player/logs/", views.player_logs_view, name="player_logs"),
     path('players/<int:player_id>/evaluations/', views.player_evaluations, name='player_evaluations'),
     path('players/<int:player_id>/evaluations/<int:evaluation_id>/', views.get_evaluation_detail, name='evaluation_detail'),
+    path("player/teams/", views.player_teams_view, name="player_teams"),
+
 
 ]

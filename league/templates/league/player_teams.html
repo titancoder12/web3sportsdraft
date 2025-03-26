@@ -1,0 +1,45 @@
+{% extends 'league/base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">{{ player.first_name }} {{ player.last_name }} — My Teams</h2>
+
+  {% for team in teams %}
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <strong>{{ team.name }}</strong>
+        <span class="text-muted">{{ team.division.name }}</span>
+      </div>
+      <div class="card-body">
+        <h6 class="text-primary">👨‍🏫 Coaches:</h6>
+        <ul>
+          {% for coach in team.coaches.all %}
+
+            <li>
+                {{ coach.first_name }} {{ coach.last_name }}
+                {% if not coach.first_name and not coach.last_name %}
+                  ({{ coach.username }})
+                {% endif %}
+              </li>
+
+          {% empty %}
+            <li class="text-muted">No coaches assigned</li>
+          {% endfor %}
+        </ul>
+
+        <h6 class="text-success mt-3">🧢 Teammates:</h6>
+        <ul>
+          {% for teammate in team.players.all %}
+            {% if teammate != player %}
+              <li>{{ teammate.first_name }} {{ teammate.last_name }}</li>
+            {% endif %}
+          {% empty %}
+            <li class="text-muted">No other teammates yet</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endfor %}
+
+  <a href="{% url 'player_dashboard' %}" class="btn btn-secondary mt-4">← Back to Dashboard</a>
+</div>
+{% endblock %}
