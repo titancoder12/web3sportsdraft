@@ -17,6 +17,7 @@ from collections import defaultdict
 from league.models import TeamLog
 
 from django.utils import timezone
+from django.http import HttpResponseForbidden
 
 
 @login_required
@@ -32,8 +33,30 @@ def player_teams_view(request):
 @login_required
 def player_evaluations(request, player_id):
     player = get_object_or_404(Player, id=player_id)
-    evaluations = player.evaluations.all()
-    return render(request, 'league/player_evaluations.html', {'player': player, 'evaluations': evaluations})
+
+    user = request.user
+
+    # Rule 1: Players can only access their own
+    if hasattr(user, 'player_profile') and user.player_profile.id == player.id:
+        pass
+
+    # Rule 2: Coaches can access only players on teams they coach
+    elif user.teams.exists():
+        # Teams this coach coaches
+        coach_team_ids = user.teams.values_list("id", flat=True)
+        # Check if player is on any of those teams
+        if not player.teams.filter(id__in=coach_team_ids).exists():
+            return HttpResponseForbidden("You do not have permission to view this player's evaluations.")
+    else:
+        return HttpResponseForbidden("You do not have permission to view this player's evaluations.")
+
+    # Access granted → show evaluations
+    evaluations = player.evaluations.all().order_by("-date")
+
+    return render(request, "league/player_evaluations.html", {
+        "player": player,
+        "evaluations": evaluations,
+    })
 
 @login_required
 def get_evaluation_detail(request, player_id, evaluation_id):
@@ -273,12 +296,15 @@ def coach_player_detail(request, player_id):
         'era': f"{era:.2f}",
     }
 
+    evaluations = PerformanceEvaluation.objects.filter(player=player).order_by("-date")
+
     return render(request, "league/coach_player_detail.html", {
         "player": player,
         "visible_logs": visible_logs,
         "shared_teams": shared_teams,
         "team_stats": team_stats,
         "overall_stats": overall_stats,
+         "evaluations": evaluations,  # ✅ Add this line
     })
 
 @login_required
