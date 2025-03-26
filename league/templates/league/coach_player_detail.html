@@ -27,68 +27,6 @@
 
 
 
-  <h4 class="mt-5">🧪 Performance Evaluations</h4>
-
-  {% if evaluations %}
-    <div class="mb-3">
-      <label for="evaluationSelect" class="form-label">Select Evaluation:</label>
-      <select id="evaluationSelect" class="form-select">
-        <option value="">-- Choose a date --</option>
-        {% for eval in evaluations %}
-          <option value="{{ eval.id }}">{{ eval.date }}</option>
-        {% endfor %}
-      </select>
-    </div>
-  
-    <div id="evaluationDetail" data-evaluations='{{ evaluations|json_script:"evalData" }}' class="card shadow-sm p-4 mb-4"
-         style="background: linear-gradient(135deg, #f0f4ff, #e8f0fe); border-radius: 1rem;">
-      <h5 class="card-title mb-3 text-primary fw-bold">Evaluation Details</h5>
-      <div class="row">
-        <div class="col-md-6">
-          <p><strong>Date:</strong> <span id="evalDate">–</span></p>
-          <p><strong>Grip Strength:</strong> <span id="gripStrength">–</span></p>
-          <p><strong>Lateral Jump:</strong> <span id="lateralJump">–</span></p>
-          <p><strong>Shot Put:</strong> <span id="shotPut">–</span></p>
-          <p><strong>5-10-5 Yards:</strong> <span id="fiveTenFiveYards">–</span></p>
-          <p><strong>10-Yard Sprint:</strong> <span id="tenYards">–</span></p>
-        </div>
-        <div class="col-md-6">
-          <p><strong>Catcher Pop:</strong> <span id="catcherPop">–</span></p>
-          <p><strong>Exit Velo:</strong> <span id="exitVelo">–</span></p>
-          <p><strong>Bat Speed:</strong> <span id="batSpeed">–</span></p>
-          <p><strong>Fielding Notes:</strong> <span id="fieldingNotes">–</span></p>
-          <p><strong>Pitching Comments:</strong> <span id="pitchingComment">–</span></p>
-        </div>
-      </div>
-    </div>
-  
-    <script>
-      const evalData = JSON.parse(document.getElementById('evalData').textContent);
-      document.getElementById('evaluationSelect').addEventListener('change', function () {
-        const selectedId = this.value;
-        const selected = evalData.find(e => e.id == selectedId);
-  
-        if (selected) {
-          document.getElementById('evalDate').textContent = selected.date ?? '–';
-          document.getElementById('gripStrength').textContent = selected.grip_strength ?? '–';
-          document.getElementById('lateralJump').textContent = selected.lateral_jump ?? '–';
-          document.getElementById('shotPut').textContent = selected.shot_put ?? '–';
-          document.getElementById('fiveTenFiveYards').textContent = selected.five_ten_five_yards ?? '–';
-          document.getElementById('tenYards').textContent = selected.ten_yards ?? '–';
-          document.getElementById('catcherPop').textContent = selected.catcher_pop ?? '–';
-          document.getElementById('exitVelo').textContent = selected.exit_velo ?? '–';
-          document.getElementById('batSpeed').textContent = selected.bat_speed ?? '–';
-          document.getElementById('fieldingNotes').textContent = selected.fielding_notes || '–';
-          document.getElementById('pitchingComment').textContent = selected.pitching_comment || '–';
-        } else {
-          document.querySelectorAll('#evaluationDetail span').forEach(span => span.textContent = '–');
-        }
-      });
-    </script>
-  {% else %}
-    <p class="text-muted">No evaluations recorded yet for this player.</p>
-  {% endif %}
-  
 
 
 
