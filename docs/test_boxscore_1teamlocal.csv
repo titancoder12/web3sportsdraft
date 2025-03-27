@@ -1,0 +1,14 @@
+game_id,first_name,last_name,username,at_bats,runs,hits,rbis,singles,doubles,triples,home_runs,strikeouts,base_on_balls,hit_by_pitch,sacrifice_flies,innings_pitched,hits_allowed,runs_allowed,earned_runs,walks_allowed,strikeouts_pitching,home_runs_allowed,team_id,is_home,date,time,location
+,Barack,Obama,barackobama,4,1,3,0,2,1,0,1,0,1,0,0,1,2,1,1,1,1,1,81,FALSE,2025-03-27,18:00,UBC
+,Joe,Biden,joebiden,4,1,2,0,1,1,0,0,0,0,0,0,1,1,1,1,1,1,0,81,FALSE,,,
+,Hillary,Clinton,hillaryclinton,4,0,1,0,1,0,0,0,0,1,1,0,1,2,2,2,1,1,0,81,FALSE,,,
+,Donald,Trump,donaldtrump,4,1,1,1,0,1,0,0,1,0,0,0,1,3,1,1,2,0,0,81,FALSE,,,
+,Lily,King,lilyking,4,0,0,0,0,0,0,0,1,0,0,0,1,3,0,0,1,0,0,81,FALSE,,,
+,Kamala,Harris,kamalaharris,4,0,2,0,2,0,0,0,1,1,0,0,1,0,0,0,0,1,0,81,FALSE,,,
+,Samuel,Green,samuelgreen,4,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,81,FALSE,,,
+,George,Bush,georgebush,4,0,0,1,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,81,FALSE,,,
+,Bernie,Sanders,berniesanders,3,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,81,FALSE,,,
+,Nikki,Haley,nikkihaley,3,0,0,0,0,0,0,0,1,2,0,0,0,0,0,0,0,0,0,81,FALSE,,,
+,Justin,Trudeau,justintrudeau,3,0,1,0,1,0,0,0,2,0,0,0,0,0,0,0,0,0,0,81,FALSE,,,
+,Jason,Bourne,jasonbourne,3,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,81,FALSE,,,
+,Jagmeet,Singh,jagmeetsingh,3,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,81,FALSE,,,
