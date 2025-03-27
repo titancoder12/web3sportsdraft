@@ -142,7 +142,7 @@ def upload_box_score(request):
                 entry["away_team"] = team
 
             # If game exists now, process this stat row immediately
-            if entry["home_team"] and entry["away_team"] and entry["game"] is None:
+            if (entry["home_team"] or entry["away_team"]) and entry["game"] is None:
                 entry["game"] = Game.objects.create(
                     game_id=str(uuid.uuid4()),
                     date=entry["date"],

@@ -109,8 +109,8 @@ class PerformanceEvaluation(models.Model):
 
 class Game(models.Model):
     game_id = models.CharField(max_length=50, unique=True)
-    team_home = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="home_games")
-    team_away = models.ForeignKey("Team", on_delete=models.CASCADE, related_name="away_games")
+    team_home = models.ForeignKey("Team", on_delete=models.CASCADE, null=True, related_name="home_games")
+    team_away = models.ForeignKey("Team", on_delete=models.CASCADE, null=True, related_name="away_games")
     date = models.DateTimeField()
     time = models.TimeField()
     location = models.CharField(max_length=100)

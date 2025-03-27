@@ -1,7 +1,7 @@
-<!DOCTYPE html>
-<html>
 {% extends 'league/base.html' %}
 {% block content %}
+<!DOCTYPE html>
+<html>
 <head>
     <title>Box Score - Game {{ game.id }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -16,37 +16,28 @@
     </style>
 </head>
 <body>
-
-
-
-
-
 <div class="container mt-5">
 
-
-
-
     {% if request.user.is_authenticated %}
-    {% if request.user.player_profile %}
-      <a href="{% url 'player_dashboard' %}" class="btn btn-secondary">← Back to Player Dashboard</a>
-    {% elif request.user.teams.exists %}
-      <a href="{% url 'coach_dashboard' %}" class="btn btn-secondary">← Back to Coach Dashboard</a>
-    {% elif request.user.coordinator_profile.divisions.exists %}
-      <a href="{% url 'dashboard_with_division' request.user.coordinator_profile.divisions.first.id %}" class="btn btn-secondary">
-        ← Back to Division Dashboard
-      </a>
-    {% else %}
-      <a href="/" class="btn btn-secondary">← Back</a>
+      {% if request.user.player_profile %}
+        <a href="{% url 'player_dashboard' %}" class="btn btn-secondary mb-4">← Back to Player Dashboard</a>
+      {% elif request.user.teams.exists %}
+        <a href="{% url 'coach_dashboard' %}" class="btn btn-secondary mb-4">← Back to Coach Dashboard</a>
+      {% elif request.user.coordinator_profile.divisions.exists %}
+        <a href="{% url 'dashboard_with_division' request.user.coordinator_profile.divisions.first.id %}" class="btn btn-secondary mb-4">
+          ← Back to Division Dashboard
+        </a>
+      {% else %}
+        <a href="/" class="btn btn-secondary mb-4">← Back</a>
+      {% endif %}
     {% endif %}
-  {% endif %}
 
-
-    
     <h1 class="mb-4">Box Score - Game {{ game.id }}</h1>
     <p><strong>Date:</strong> {{ game.date|date:"Y-m-d" }} | <strong>Time:</strong> {{ game.time }}</p>
     <p><strong>Location:</strong> {{ game.location }}</p>
 
     <!-- Home Team -->
+    {% if home_team_stats %}
     <div class="boxscore-section">
         <h3 class="text-primary">{{ game.team_home.name }} (Home)</h3>
 
@@ -68,8 +59,6 @@
                     <td>{{ stat.singles }}</td><td>{{ stat.doubles }}</td><td>{{ stat.triples }}</td><td>{{ stat.home_runs }}</td>
                     <td>{{ stat.base_on_balls }}</td><td>{{ stat.hit_by_pitch }}</td><td>{{ stat.sacrifice_flies }}</td><td>{{ stat.strikeouts }}</td>
                 </tr>
-                {% empty %}
-                <tr><td colspan="13" class="text-center">No hitting stats available</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -95,8 +84,10 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
 
     <!-- Away Team -->
+    {% if away_team_stats %}
     <div class="boxscore-section">
         <h3 class="text-danger">{{ game.team_away.name }} (Away)</h3>
 
@@ -118,8 +109,6 @@
                     <td>{{ stat.singles }}</td><td>{{ stat.doubles }}</td><td>{{ stat.triples }}</td><td>{{ stat.home_runs }}</td>
                     <td>{{ stat.base_on_balls }}</td><td>{{ stat.hit_by_pitch }}</td><td>{{ stat.sacrifice_flies }}</td><td>{{ stat.strikeouts }}</td>
                 </tr>
-                {% empty %}
-                <tr><td colspan="13" class="text-center">No hitting stats available</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -145,11 +134,11 @@
             </tbody>
         </table>
     </div>
+    {% endif %}
 
-    <a href="{% url 'dashboard_with_division' game.team_home.division.id %}" class="btn btn-secondary">Back to Dashboard</a>
+    <a href="{{ back_url }}" class="btn btn-secondary mt-4">← Back</a>
+
 </div>
 </body>
-
-{% endblock %}
-
 </html>
+{% endblock %}

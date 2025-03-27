@@ -513,6 +513,7 @@ def box_score_view(request, game_id):
         'game': game,
         'home_team_stats': home_team_stats,
         'away_team_stats': away_team_stats,
+        "back_url": request.META.get("HTTP_REFERER", "/"),
     }
     return render(request, 'league/box_score.html', context)
 
