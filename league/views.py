@@ -30,6 +30,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 
 from .forms import PlayerSignupForm
+from threading import Thread
 
 def activate(request, uidb64, token):
     try:
@@ -992,46 +993,45 @@ def player_profile(request):
         'form': form,
     })
 
+def send_activation_email(user, activation_link):
+    subject = 'Activate Your Web3SportsDraft Account'
+    message = render_to_string('registration/activation_email.html', {
+        'user': user,
+        'activation_link': activation_link,
+    })
+    email = EmailMessage(subject, message, to=[user.email])
+    email.send()
+    print(f"✅ Activation email sent to: {user.email}")
+
 
 def player_signup(request):
     if request.method == 'POST':
         form = PlayerSignupForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False  # Require email activation
-            user.save()
-
-            # ✅ Create the Player object
-            player = Player.objects.create(
-                user=user,
-                first_name=user.first_name,
-                last_name=user.last_name,
-            )
-
             try:
-                # Send activation email
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
+
+                Player.objects.create(
+                    user=user,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                )
+
+                # Build activation link
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
                 domain = get_current_site(request).domain
                 activation_link = f"http://{domain}/activate/{uid}/{token}/"
 
-                subject = 'Activate Your Web3SportsDraft Account'
-                message = render_to_string('registration/activation_email.html', {
-                    'user': user,
-                    'activation_link': activation_link,
-                })
-
-                email = EmailMessage(subject, message, to=[user.email])
-                email.send()
-                print("✅ Activation email sent to:", user.email)
+                # Send email in a thread
+                Thread(target=send_activation_email, args=(user, activation_link)).start()
 
                 return render(request, 'registration/signup_pending.html', {'email': user.email})
-
             except Exception as e:
-                print("❌ Failed to send activation email:", e)
-                messages.error(request, "Account created but email could not be sent. Please contact support.")
-                return render(request, 'league/signup.html', {'form': form})
-
+                print("❌ Error during signup:", str(e))
+                return render(request, 'registration/signup_error.html', {'error': str(e)})
     else:
         form = PlayerSignupForm()
 
