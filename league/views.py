@@ -1000,32 +1000,38 @@ def player_signup(request):
             user = form.save(commit=False)
             user.is_active = False  # Require email activation
             user.save()
+
             # ✅ Create the Player object
-            # If you later add a @receiver(post_save, sender=User) signal to create a Player automatically, 
-            # you could centralize this logic. But for now, doing it directly in the view keeps it simple and clear.
             player = Player.objects.create(
                 user=user,
                 first_name=user.first_name,
                 last_name=user.last_name,
             )
 
-            # Send activation email
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            token = default_token_generator.make_token(user)
-            domain = get_current_site(request).domain
-            activation_link = f"http://{domain}/activate/{uid}/{token}/"
+            try:
+                # Send activation email
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                domain = get_current_site(request).domain
+                activation_link = f"http://{domain}/activate/{uid}/{token}/"
 
-            subject = 'Activate Your Web3SportsDraft Account'
-            message = render_to_string('registration/activation_email.html', {
-                'user': user,
-                'activation_link': activation_link,
-            })
+                subject = 'Activate Your Web3SportsDraft Account'
+                message = render_to_string('registration/activation_email.html', {
+                    'user': user,
+                    'activation_link': activation_link,
+                })
 
-            email = EmailMessage(subject, message, to=[user.email])
-            email.send()
-            print("✅ Activation email sent to:", user.email)
+                email = EmailMessage(subject, message, to=[user.email])
+                email.send()
+                print("✅ Activation email sent to:", user.email)
 
-            return render(request, 'registration/signup_pending.html', {'email': user.email})
+                return render(request, 'registration/signup_pending.html', {'email': user.email})
+
+            except Exception as e:
+                print("❌ Failed to send activation email:", e)
+                messages.error(request, "Account created but email could not be sent. Please contact support.")
+                return render(request, 'league/signup.html', {'form': form})
+
     else:
         form = PlayerSignupForm()
 
