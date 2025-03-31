@@ -993,16 +993,24 @@ def player_profile(request):
         'form': form,
     })
 
-def send_activation_email(user, activation_link):
-    subject = 'Activate Your Web3SportsDraft Account'
-    message = render_to_string('registration/activation_email.html', {
-        'user': user,
-        'activation_link': activation_link,
-    })
-    email = EmailMessage(subject, message, to=[user.email])
-    email.send()
-    print(f"✅ Activation email sent to: {user.email}")
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+def send_activation_email(user, activation_link):
+    try:
+        logger.info(f"📨 Preparing to send activation email to {user.email}")
+        subject = 'Activate Your Web3SportsDraft Account'
+        message = render_to_string('registration/activation_email.html', {
+            'user': user,
+            'activation_link': activation_link,
+        })
+        email = EmailMessage(subject, message, to=[user.email])
+        email.send()
+        logger.info(f"✅ Activation email sent to: {user.email}")
+    except Exception as e:
+        logger.error(f"❌ Failed to send email to {user.email}: {str(e)}")
 
 def player_signup(request):
     if request.method == 'POST':
