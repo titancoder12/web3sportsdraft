@@ -1019,7 +1019,7 @@ def player_signup(request):
         if form.is_valid():
             try:
                 user = form.save(commit=False)
-                user.is_active = False
+                user.is_active = True # # Immediately activate
                 user.email = form.cleaned_data['email']  # 🔁 Add this line
                 user.save()
 
@@ -1029,15 +1029,17 @@ def player_signup(request):
                     last_name=user.last_name,
                 )
 
+                # To use email activation, set user.is_active = False above, and uncomment the lines below
                 # Build activation link
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-                token = default_token_generator.make_token(user)
-                domain = get_current_site(request).domain
-                activation_link = f"https://{domain}/activate/{uid}/{token}/"
+                #uid = urlsafe_base64_encode(force_bytes(user.pk))
+                #token = default_token_generator.make_token(user)
+                #domain = get_current_site(request).domain
+                #activation_link = f"https://{domain}/activate/{uid}/{token}/"
 
-                Thread(target=send_activation_email, args=(user, activation_link)).start()
+                #Thread(target=send_activation_email, args=(user, activation_link)).start()
 
-                return render(request, 'registration/signup_pending.html', {'email': user.email})
+                #return render(request, 'registration/signup_pending.html', {'email': user.email})
+                return render(request, 'registration/activation_success.html', {'email': user.email})
             except Exception as e:
                 logger.exception("❌ Error during signup")
                 return render(request, 'registration/signup_error.html', {'error': str(e)})
