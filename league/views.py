@@ -1033,7 +1033,7 @@ def player_signup(request):
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
                 domain = get_current_site(request).domain
-                activation_link = f"http://{domain}/activate/{uid}/{token}/"
+                activation_link = f"https://{domain}/activate/{uid}/{token}/"
 
                 Thread(target=send_activation_email, args=(user, activation_link)).start()
 
