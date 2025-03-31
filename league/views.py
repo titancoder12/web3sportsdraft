@@ -1012,6 +1012,7 @@ def send_activation_email(user, activation_link):
     except Exception as e:
         logger.error(f"❌ Failed to send email to {user.email}: {str(e)}")
 
+
 def player_signup(request):
     if request.method == 'POST':
         form = PlayerSignupForm(request.POST)
@@ -1019,6 +1020,7 @@ def player_signup(request):
             try:
                 user = form.save(commit=False)
                 user.is_active = False
+                user.email = form.cleaned_data['email']  # 🔁 Add this line
                 user.save()
 
                 Player.objects.create(
@@ -1033,12 +1035,11 @@ def player_signup(request):
                 domain = get_current_site(request).domain
                 activation_link = f"http://{domain}/activate/{uid}/{token}/"
 
-                # Send email in a thread
                 Thread(target=send_activation_email, args=(user, activation_link)).start()
 
                 return render(request, 'registration/signup_pending.html', {'email': user.email})
             except Exception as e:
-                print("❌ Error during signup:", str(e))
+                logger.exception("❌ Error during signup")
                 return render(request, 'registration/signup_error.html', {'error': str(e)})
     else:
         form = PlayerSignupForm()

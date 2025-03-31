@@ -51,26 +51,28 @@ class CoachCommentForm(forms.ModelForm):
         }
 
 class PlayerSignupForm(UserCreationForm):
+    email = forms.EmailField(required=True)
     first_name = forms.CharField(max_length=50)
     last_name = forms.CharField(max_length=50)
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'password1', 'password2']
+        fields = ['username', 'email', 'first_name', 'last_name', 'password1', 'password2']
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.username = self.cleaned_data['username'].lower()
-        user.email = self.cleaned_data['username']
+        user.email = self.cleaned_data['email']
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        user.username = self.cleaned_data['username']
         if commit:
             user.save()
             Player.objects.create(
                 user=user,
-                first_name=self.cleaned_data['first_name'],
-                last_name=self.cleaned_data['last_name'],
-                # No division here; verification will happen later
+                first_name=user.first_name,
+                last_name=user.last_name,
             )
-        return user 
+        return user
 
 class PlayerCSVUploadForm(forms.Form):
     csv_file = forms.FileField(label="Upload CSV File", widget=forms.FileInput(attrs={'class': 'form-control'}))

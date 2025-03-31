@@ -52,11 +52,19 @@
                 {% csrf_token %}
                 <table class="form-table">
                     <tr>
-                        <td class="label-cell"><label for="id_username">Email (username)</label></td>
+                        <td class="label-cell"><label for="id_username">Username</label></td>
                         <td>{{ form.username }}</td>
                     </tr>
                     {% if form.username.errors %}
                     <tr><td></td><td class="text-danger small">{{ form.username.errors }}</td></tr>
+                    {% endif %}
+
+                    <tr>
+                        <td class="label-cell"><label for="id_email">Email</label></td>
+                        <td>{{ form.email }}</td>
+                    </tr>
+                    {% if form.email.errors %}
+                    <tr><td></td><td class="text-danger small">{{ form.email.errors }}</td></tr>
                     {% endif %}
 
                     <tr>
