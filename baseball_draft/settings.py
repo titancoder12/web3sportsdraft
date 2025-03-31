@@ -145,3 +145,24 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
 }
+
+
+# Mail Verification Settings
+# pip install django-environ
+import os
+import environ
+env = environ.Env()
+
+env_path = BASE_DIR / '.env'
+environ.Env.read_env(env_path)
+
+print("DEBUG — .env found?", os.path.exists(".env"))
+print("DEBUG — EMAIL_HOST_USER:", env("EMAIL_HOST_USER", default="NOT SET"))
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')  # ← Your Gmail address
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')  # ← The 16-character App Password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

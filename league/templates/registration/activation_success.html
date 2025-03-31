@@ -1,0 +1,9 @@
+{% extends 'league/base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <div class="alert alert-success p-4 rounded">
+    <h4>✅ Account Activated</h4>
+    <p>Your account has been successfully activated. You can now <a href="{% url 'login' %}">log in</a>.</p>
+  </div>
+</div>
+{% endblock %}

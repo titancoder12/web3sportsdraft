@@ -52,7 +52,7 @@
                 {% csrf_token %}
                 <table class="form-table">
                     <tr>
-                        <td class="label-cell"><label for="id_username">Email</label></td>
+                        <td class="label-cell"><label for="id_username">Email (username)</label></td>
                         <td>{{ form.username }}</td>
                     </tr>
                     {% if form.username.errors %}

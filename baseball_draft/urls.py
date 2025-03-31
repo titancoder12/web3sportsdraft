@@ -28,6 +28,7 @@ urlpatterns = [
     path('add-player/<int:division_id>/', views.add_player, name='add_player_with_division'),
     path('profile/', views.player_profile, name='player_profile'),
     path('signup/', views.player_signup, name='player_signup'),
+    path('activate/<uidb64>/<token>/', views.activate, name='activate'),
     path('comment/<int:player_id>/<int:division_id>/', views.coach_comment, name='coach_comment'),
     path('draft/', views.public_draft, name='public_draft'),
     path('draft/<int:division_id>/', views.public_draft, name='public_draft_with_division'),

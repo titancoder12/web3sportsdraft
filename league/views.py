@@ -9,7 +9,7 @@ import csv
 from io import TextIOWrapper
 from datetime import datetime
 from django.contrib import messages
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.db.models import Sum, Count
 from django.db.models.functions import Coalesce
 
@@ -19,6 +19,31 @@ from league.models import TeamLog
 from django.utils import timezone
 from django.http import HttpResponseForbidden
 from django.contrib.auth import login
+
+
+from django.contrib.auth import login
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import EmailMessage
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+
+from .forms import PlayerSignupForm
+
+def activate(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return render(request, 'registration/activation_success.html', {'user': user})
+    else:
+        return render(request, 'registration/activation_invalid.html')
 
 
 @login_required
@@ -972,11 +997,38 @@ def player_signup(request):
     if request.method == 'POST':
         form = PlayerSignupForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('player_dashboard')  # or a 'signup_success' page if unverified
+            user = form.save(commit=False)
+            user.is_active = False  # Require email activation
+            user.save()
+            # ✅ Create the Player object
+            # If you later add a @receiver(post_save, sender=User) signal to create a Player automatically, 
+            # you could centralize this logic. But for now, doing it directly in the view keeps it simple and clear.
+            player = Player.objects.create(
+                user=user,
+                first_name=user.first_name,
+                last_name=user.last_name,
+            )
+
+            # Send activation email
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            domain = get_current_site(request).domain
+            activation_link = f"http://{domain}/activate/{uid}/{token}/"
+
+            subject = 'Activate Your Web3SportsDraft Account'
+            message = render_to_string('registration/activation_email.html', {
+                'user': user,
+                'activation_link': activation_link,
+            })
+
+            email = EmailMessage(subject, message, to=[user.email])
+            email.send()
+            print("✅ Activation email sent to:", user.email)
+
+            return render(request, 'registration/signup_pending.html', {'email': user.email})
     else:
         form = PlayerSignupForm()
+
     return render(request, 'league/signup.html', {'form': form})
 
 @login_required
