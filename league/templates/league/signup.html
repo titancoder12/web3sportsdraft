@@ -1,59 +1,102 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sign Up - Baseball Draft</title>
+    <title>Sign Up - Player Development Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to right, #f0f4ff, #dfefff);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .signup-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 2rem 2.5rem;
+            max-width: 600px;
+            margin: 4rem auto;
+        }
+        .form-label {
+            font-weight: 600;
+        }
+        .form-control {
+            width: 100%;
+            border-radius: 0.5rem;
+            padding: 0.6rem 0.75rem;
+        }
+        h2 {
+            color: #003366;
+        }
+        .btn-primary {
+            background-color: #004080;
+            border-color: #003366;
+        }
+        .btn-outline-secondary {
+            border-color: #888;
+        }
+        table.form-table td {
+            padding: 0.5rem 1rem;
+            vertical-align: middle;
+        }
+        table.form-table td.label-cell {
+            width: 150px;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="mb-4">Player Sign Up</h1>
-        <form method="post" class="w-50">
-            {% csrf_token %}
-            <div class="mb-3">
-                <label for="id_username" class="form-label">Username</label>
-                {{ form.username }}
-                {% if form.username.errors %}
-                    <div class="text-danger">{{ form.username.errors }}</div>
-                {% endif %}
-            </div>
-            <div class="mb-3">
-                <label for="id_first_name" class="form-label">First Name</label>
-                {{ form.first_name }}
-                {% if form.first_name.errors %}
-                    <div class="text-danger">{{ form.first_name.errors }}</div>
-                {% endif %}
-            </div>
-            <div class="mb-3">
-                <label for="id_last_name" class="form-label">Last Name</label>
-                {{ form.last_name }}
-                {% if form.last_name.errors %}
-                    <div class="text-danger">{{ form.last_name.errors }}</div>
-                {% endif %}
-            </div>
-            <div class="mb-3">
-                <label for="id_division" class="form-label">Division</label>
-                {{ form.division }}
-                {% if form.division.errors %}
-                    <div class="text-danger">{{ form.division.errors }}</div>
-                {% endif %}
-            </div>
-            <div class="mb-3">
-                <label for="id_password1" class="form-label">Password</label>
-                {{ form.password1 }}
-                {% if form.password1.errors %}
-                    <div class="text-danger">{{ form.password1.errors }}</div>
-                {% endif %}
-            </div>
-            <div class="mb-3">
-                <label for="id_password2" class="form-label">Confirm Password</label>
-                {{ form.password2 }}
-                {% if form.password2.errors %}
-                    <div class="text-danger">{{ form.password2.errors }}</div>
-                {% endif %}
-            </div>
-            <button type="submit" class="btn btn-primary">Sign Up</button>
-            <a href="{% url 'login' %}" class="btn btn-secondary">Back to Login</a>
-        </form>
+    <div class="container">
+        <div class="signup-card">
+            <h2 class="mb-4 text-center">Create Your Player Account</h2>
+            <form method="post">
+                {% csrf_token %}
+                <table class="form-table">
+                    <tr>
+                        <td class="label-cell"><label for="id_username">Email</label></td>
+                        <td>{{ form.username }}</td>
+                    </tr>
+                    {% if form.username.errors %}
+                    <tr><td></td><td class="text-danger small">{{ form.username.errors }}</td></tr>
+                    {% endif %}
+
+                    <tr>
+                        <td class="label-cell"><label for="id_first_name">First Name</label></td>
+                        <td>{{ form.first_name }}</td>
+                    </tr>
+                    {% if form.first_name.errors %}
+                    <tr><td></td><td class="text-danger small">{{ form.first_name.errors }}</td></tr>
+                    {% endif %}
+
+                    <tr>
+                        <td class="label-cell"><label for="id_last_name">Last Name</label></td>
+                        <td>{{ form.last_name }}</td>
+                    </tr>
+                    {% if form.last_name.errors %}
+                    <tr><td></td><td class="text-danger small">{{ form.last_name.errors }}</td></tr>
+                    {% endif %}
+
+                    <tr>
+                        <td class="label-cell"><label for="id_password1">Password</label></td>
+                        <td>{{ form.password1 }}</td>
+                    </tr>
+                    {% if form.password1.errors %}
+                    <tr><td></td><td class="text-danger small">{{ form.password1.errors }}</td></tr>
+                    {% endif %}
+
+                    <tr>
+                        <td class="label-cell"><label for="id_password2">Confirm Password</label></td>
+                        <td>{{ form.password2 }}</td>
+                    </tr>
+                    {% if form.password2.errors %}
+                    <tr><td></td><td class="text-danger small">{{ form.password2.errors }}</td></tr>
+                    {% endif %}
+                </table>
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                    <a href="{% url 'login' %}" class="btn btn-outline-secondary">Back to Login</a>
+                </div>
+            </form>
+        </div>
     </div>
 </body>
 </html>

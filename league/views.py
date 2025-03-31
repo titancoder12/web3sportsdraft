@@ -18,6 +18,7 @@ from league.models import TeamLog
 
 from django.utils import timezone
 from django.http import HttpResponseForbidden
+from django.contrib.auth import login
 
 
 @login_required
@@ -966,14 +967,14 @@ def player_profile(request):
         'form': form,
     })
 
-# league/views.py (relevant section)
-def signup(request):
+
+def player_signup(request):
     if request.method == 'POST':
         form = PlayerSignupForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('player_profile')
+            return redirect('player_dashboard')  # or a 'signup_success' page if unverified
     else:
         form = PlayerSignupForm()
     return render(request, 'league/signup.html', {'form': form})

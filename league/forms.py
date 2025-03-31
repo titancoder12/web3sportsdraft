@@ -51,33 +51,26 @@ class CoachCommentForm(forms.ModelForm):
         }
 
 class PlayerSignupForm(UserCreationForm):
-    first_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
-    last_name = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}))
-    division = forms.ModelChoiceField(
-        queryset=Division.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-control', 'required': 'required'}),
-        empty_label="-- Select a Division --"
-    )
+    first_name = forms.CharField(max_length=50)
+    last_name = forms.CharField(max_length=50)
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'division', 'password1', 'password2']
-        widgets = {
-            'username': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
-        }
+        fields = ['username', 'first_name', 'last_name', 'password1', 'password2']
 
     def save(self, commit=True):
         user = super().save(commit=False)
+        user.username = self.cleaned_data['username'].lower()
+        user.email = self.cleaned_data['username']
         if commit:
             user.save()
             Player.objects.create(
                 user=user,
                 first_name=self.cleaned_data['first_name'],
                 last_name=self.cleaned_data['last_name'],
-                division=self.cleaned_data['division']  # Assign selected division
+                # No division here; verification will happen later
             )
-        return user
-    
+        return user 
 
 class PlayerCSVUploadForm(forms.Form):
     csv_file = forms.FileField(label="Upload CSV File", widget=forms.FileInput(attrs={'class': 'form-control'}))
