@@ -1,6 +1,33 @@
 {% extends 'league/base.html' %}
 {% block content %}
 <div class="container mt-4">
+
+
+    <div class="btn-group mb-4" role="group">
+        <a
+          href="{% url 'player_dashboard' %}"
+          class="btn btn-outline-primary btn-sm"
+          >Dashboard</a
+        >
+        <a href="{% url 'player_logs' %}" class="btn btn-outline-primary btn-sm"
+          >My Logs</a
+        >
+        <a
+          href="{% url 'player_evaluations' player.id %}"
+          class="btn btn-outline-primary btn-sm"
+        >
+          Performance Evaluations
+        </a>
+        <a href="{% url 'player_teams' %}" class="btn btn-outline-primary btn-sm">
+          View My Teams
+        </a>
+        <a href="{% url 'find_teams' %}" class="btn btn-outline-secondary btn-sm">
+          🔍 Find a Team to Join
+        </a>
+    
+      </div>
+
+    
   <h2>🔍 Find a Team</h2>
   <p>Select a team you’d like to join. Your request will be sent to the coach for approval.</p>
 

@@ -1296,7 +1296,8 @@ def find_teams(request):
     ).select_related('division')
 
     return render(request, 'league/find_teams.html', {
-        'available_teams': available_teams
+        'available_teams': available_teams,
+        'player':player,
     })
 
 
