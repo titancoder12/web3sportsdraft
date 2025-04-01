@@ -6,7 +6,7 @@ from django.views.generic import RedirectView
 from rest_framework import routers
 from league import views
 from api import views as api_views
-
+from league.views import request_join_team, review_join_requests, approve_join_request
 
 # REST API
 router = routers.DefaultRouter()
@@ -63,6 +63,12 @@ urlpatterns += [
     path('players/<int:player_id>/evaluations/', views.player_evaluations, name='player_evaluations'),
     path('players/<int:player_id>/evaluations/<int:evaluation_id>/', views.get_evaluation_detail, name='evaluation_detail'),
     path("player/teams/", views.player_teams_view, name="player_teams"),
+    path('join-team/', request_join_team, name='request_join_team'),
+    path('coach/join-requests/', review_join_requests, name='review_join_requests'),
+    path('coach/join-requests/<int:request_id>/approve/', approve_join_request, name='approve_join_request'),
+    path('find-teams/', views.find_teams, name='find_teams'),
+    path('request-join/<int:team_id>/', views.request_join_team, name='request_join_team'),
+    path('approve-join-request/<int:request_id>/', views.approve_join_request, name='approve_join_request'),
 
 
 ]

@@ -24,6 +24,9 @@
     <a href="{% url 'player_teams' %}" class="btn btn-outline-primary btn-sm">
       View My Teams
     </a>
+    <a href="{% url 'find_teams' %}" class="btn btn-outline-primary btm-ms">
+      🔍 Find a Team to Join
+    </a>
     {% else %}
       <a href="{% url 'coach_dashboard' %}" class="btn btn-outline-secondary btn-sm">← Back to Coach Dashboard</a>
       <a href="{% url 'coach_player_detail' player.id %}" class="btn btn-outline-primary btn-sm">Back to Player Logs</a>

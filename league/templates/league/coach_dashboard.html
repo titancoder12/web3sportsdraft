@@ -4,6 +4,29 @@
 <div class="container mt-4">
   <h2 class="mb-4 text-primary">🏟️ Coach Dashboard</h2>
 
+  {% if pending_requests %}
+  <h4 class="mt-5">⏳ Pending Player Join Requests</h4>
+  <ul class="list-group mb-4">
+    {% for request in pending_requests %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>
+          <strong>{{ request.player.first_name }} {{ request.player.last_name }}</strong>
+          requested to join <strong>{{ request.team.name }}</strong>
+        </span>
+        <form method="post" action="{% url 'approve_join_request' request.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-success">Approve</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-muted"></p>
+  {% endif %}
+
+
+
+
   {% if divisions %}
     <div class="mb-4 p-3 rounded" style="background-color: #e3f2fd; border: 1px solid #90caf9;">
       <h4 class="text-primary mb-3">📚 Your Divisions</h4>

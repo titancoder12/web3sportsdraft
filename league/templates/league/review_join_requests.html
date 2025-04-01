@@ -1,0 +1,21 @@
+{% extends 'league/base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h3>Pending Join Requests</h3>
+  {% if pending_requests %}
+    <ul class="list-group">
+      {% for req in pending_requests %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong>{{ req.player.first_name }} {{ req.player.last_name }}</strong>
+          ({{ req.player.user.email }}) wants to join <strong>{{ req.team.name }}</strong>
+        </div>
+        <a href="{% url 'approve_join_request' req.id %}" class="btn btn-sm btn-success">Approve</a>
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No join requests pending approval.</p>
+  {% endif %}
+</div>
+{% endblock %}

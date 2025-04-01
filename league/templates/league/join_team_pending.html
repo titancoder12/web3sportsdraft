@@ -1,0 +1,9 @@
+{% extends 'league/base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <div class="alert alert-info">
+    ✅ Your request to join <strong>{{ team.name }}</strong> has been submitted and is awaiting coach approval.
+  </div>
+  <a href="{% url 'player_dashboard' %}" class="btn btn-secondary">← Back to Dashboard</a>
+</div>
+{% endblock %}

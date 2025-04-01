@@ -14,7 +14,7 @@ from django.db.models import Sum, Count
 from django.db.models.functions import Coalesce
 
 from collections import defaultdict
-from league.models import TeamLog
+from league.models import TeamLog, JoinTeamRequest
 
 from django.utils import timezone
 from django.http import HttpResponseForbidden
@@ -29,8 +29,10 @@ from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 
-from .forms import PlayerSignupForm
+from .forms import PlayerSignupForm, JoinTeamRequestForm
 from threading import Thread
+from django.contrib import messages
+from django.db.models import Q
 
 def activate(request, uidb64, token):
     try:
@@ -403,11 +405,23 @@ def coach_dashboard(request):
         team_games = team_games.order_by('-date').select_related('team_home', 'team_away')
         games_by_team[team.id] = team_games
 
+
+    # Get pending join requests for any of the coach's teams
+    pending_requests = JoinTeamRequest.objects.filter(
+        team__in=teams,
+        is_approved=None
+    ).select_related('player', 'team')
+
+
+    print("Coach teams:", list(request.user.teams.all()))
+    print("Pending requests:", list(pending_requests))
+
     return render(request, "league/coach_dashboard.html", {
         "teams": teams,
         "divisions": divisions,
         "team_logs": team_logs,
          "games_by_team": games_by_team,
+        "pending_requests": pending_requests,
     })
 
 @login_required
@@ -420,6 +434,14 @@ def player_dashboard(request):
         return render(request, "league/player_dashboard.html", {
             "error": "Your account is not associated with a player profile."
         })
+    
+
+    # Get pending join requests
+    pending_requests = JoinTeamRequest.objects.filter(
+        player=player,
+        is_approved=None
+    ).select_related('team')
+
 
     # Game stats for the player
     game_stats = PlayerGameStat.objects.select_related("game").filter(player=player).order_by("-game__date")
@@ -529,6 +551,7 @@ def player_dashboard(request):
         "era": era,
         "kbb": kbb,
         "team_stats": team_stats,
+        "pending_requests": pending_requests,
     })
 
 def box_score_view(request, game_id):
@@ -1197,3 +1220,117 @@ def trade_players(request, division_id):
     }
     return render(request, 'league/trade_players.html', context)
 
+
+
+@login_required
+def request_join_team(request):
+    # Only players should access this view
+    try:
+        player = request.user.player_profile
+    except Player.DoesNotExist:
+        return render(request, "league/no_permission.html", {"message": "Only players can request to join a team."})
+
+    if request.method == 'POST':
+        form = JoinTeamRequestForm(request.POST, player=player)
+        if form.is_valid():
+            join_request = form.save(commit=False)
+            join_request.player = player
+            join_request.status = 'pending'
+            join_request.save()
+            return render(request, "league/join_team_pending.html", {"team": join_request.team})
+    else:
+        form = JoinTeamRequestForm(player=player)
+
+    return render(request, "league/request_join_team.html", {"form": form})
+
+
+@login_required
+def review_join_requests(request):
+    user = request.user
+    teams_coached = user.teams.all()
+
+    # Get all pending requests for teams this coach is responsible for
+    pending_requests = JoinTeamRequest.objects.filter(
+        team__in=teams_coached,
+        status='pending'
+    ).select_related('player__user', 'team')
+
+    return render(request, 'league/review_join_requests.html', {
+        "pending_requests": pending_requests,
+    })
+
+
+@login_required
+def approve_join_request(request, request_id):
+    join_request = get_object_or_404(JoinTeamRequest, id=request_id)
+
+    # Ensure current user is a coach of the requested team
+    if request.user not in join_request.team.coaches.all():
+        return render(request, "league/no_permission.html", {
+            "message": "You are not authorized to approve this request."
+        })
+
+    # Add player to team
+    join_request.team.players.add(join_request.player)
+    join_request.status = 'approved'
+    join_request.save()
+
+    messages.success(request, f"{join_request.player.first_name} has been added to {join_request.team.name}.")
+    return redirect('review_join_requests')
+
+@login_required
+def find_teams(request):
+    player = get_object_or_404(Player, user=request.user)
+
+    # Teams the player is already on
+    existing_team_ids = player.teams.values_list('id', flat=True)
+
+    # Teams the player has already requested to join
+    requested_team_ids = JoinTeamRequest.objects.filter(
+        player=player
+    ).values_list('team_id', flat=True)
+
+    # Available teams = all teams - already on - already requested
+    available_teams = Team.objects.exclude(
+        Q(id__in=existing_team_ids) | Q(id__in=requested_team_ids)
+    ).select_related('division')
+
+    return render(request, 'league/find_teams.html', {
+        'available_teams': available_teams
+    })
+
+
+@login_required
+def request_join_team(request, team_id):
+    player = get_object_or_404(Player, user=request.user)
+    team = get_object_or_404(Team, id=team_id)
+
+    # Check if already a member or already requested
+    if player.teams.filter(id=team.id).exists() or JoinTeamRequest.objects.filter(player=player, team=team).exists():
+        messages.warning(request, "You’ve already joined or requested this team.")
+    else:
+        JoinTeamRequest.objects.create(player=player, team=team)
+        messages.success(request, f"Request to join {team.name} sent!")
+
+    return redirect('find_teams')
+
+
+from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def approve_join_request(request, request_id):
+    join_request = get_object_or_404(JoinTeamRequest, id=request_id)
+
+    # Check the current user is a coach of that team
+    if request.user not in join_request.team.coaches.all():
+        return render(request, 'league/no_permission.html', {"message": "You don't have permission to approve this request."})
+
+    if request.method == 'POST':
+        join_request.is_approved = True
+        join_request.reviewed_at = timezone.now()
+        join_request.save()
+
+        join_request.team.players.add(join_request.player)
+
+    return redirect('coach_dashboard')

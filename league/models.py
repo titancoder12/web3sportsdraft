@@ -205,6 +205,20 @@ class PlayerJournalEntry(models.Model):
 
     def __str__(self):
         return f"Journal Entry on {self.created_at:%Y-%m-%d}"
+    
+
+class JoinTeamRequest(models.Model):
+    player = models.ForeignKey('Player', on_delete=models.CASCADE)
+    team = models.ForeignKey('Team', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('player', 'team')  # Prevent duplicates
+
+    def __str__(self):
+        return f"{self.player} requests to join {self.team}"
 
 
 

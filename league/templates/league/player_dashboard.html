@@ -20,11 +20,29 @@
       View My Teams
     </a>
 
+    <a href="{% url 'find_teams' %}" class="btn btn-outline-primary btm-ms">
+      🔍 Find a Team to Join
+    </a>
   </div>
+
+
+  {% if pending_requests %}
+  <div class="mt-4 p-3 border rounded" style="background-color: #fff3cd; border-color: #ffeeba;">
+    <h5>⏳ Pending Team Join Requests</h5>
+    <ul class="mb-0">
+      {% for req in pending_requests %}
+        <li>{{ req.team.name }} (awaiting coach approval)</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+
 
   {% if error %}
   <p class="text-danger">{{ error }}</p>
   {% else %}
+
 
   <h4>📊 Overall Stats</h4>
   <div

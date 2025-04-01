@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Player, Division, Team
+from .models import Player, Division, Team, JoinTeamRequest
 
 class PlayerForm(forms.ModelForm):
     class Meta:
@@ -82,3 +82,20 @@ class PlayerCSVUploadForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-control'}),
         empty_label="-- Select a Division --"
     )
+
+class JoinTeamRequestForm(forms.ModelForm):
+    class Meta:
+        model = JoinTeamRequest
+        fields = ['team']
+        widgets = {
+            'team': forms.Select(attrs={'class': 'form-select'})
+        }
+
+    def __init__(self, *args, **kwargs):
+        player = kwargs.pop('player', None)
+        super().__init__(*args, **kwargs)
+        if player:
+            # Optional: Only show teams the player isn't already on or hasn't already requested
+            existing_team_ids = player.teams.values_list('id', flat=True)
+            requested_team_ids = JoinTeamRequest.objects.filter(player=player).values_list('team_id', flat=True)
+            self.fields['team'].queryset = Team.objects.exclude(id__in=existing_team_ids.union(requested_team_ids))
