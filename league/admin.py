@@ -1,6 +1,6 @@
 # league/admin.py
 from django.contrib import admin
-from .models import League, Division, Team, Player, DraftPick
+from .models import League, Division, Team, Player, DraftPick, SignInLog
 
 
 admin.site.site_title = "Baseball League Admin"
@@ -40,3 +40,9 @@ class PlayerAdmin(admin.ModelAdmin):
 class DraftPickAdmin(admin.ModelAdmin):
     list_display = ('division', 'team', 'player', 'pick_number', 'round_number')
     list_filter = ('division',)
+
+@admin.register(SignInLog)
+class SigninLogAdmin(admin.ModelAdmin):
+    list_display = ('user', 'timestamp')
+    list_filter = ('timestamp', 'user')
+    search_fields = ('user__username', 'user__email')
