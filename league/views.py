@@ -442,6 +442,11 @@ def player_dashboard(request):
         is_approved=None
     ).select_related('team')
 
+    rejected_requests = JoinTeamRequest.objects.filter(
+        player=player,
+        is_approved=False
+    ).select_related('team')
+
 
     # Game stats for the player
     game_stats = PlayerGameStat.objects.select_related("game").filter(player=player).order_by("-game__date")
@@ -552,6 +557,7 @@ def player_dashboard(request):
         "kbb": kbb,
         "team_stats": team_stats,
         "pending_requests": pending_requests,
+        "rejected_requests": rejected_requests,
     })
 
 def box_score_view(request, game_id):
@@ -1335,3 +1341,19 @@ def approve_join_request(request, request_id):
         join_request.team.players.add(join_request.player)
 
     return redirect('coach_dashboard')
+
+
+@login_required
+def reject_join_request(request, request_id):
+    join_request = get_object_or_404(JoinTeamRequest, id=request_id)
+
+    # Only allow if coach is coaching this team
+    if request.user not in join_request.team.coaches.all():
+        return render(request, "league/no_permission.html", {
+            "message": "You are not allowed to reject this request."
+        })
+
+    join_request.is_approved = False
+    join_request.reviewed_at = timezone.now()
+    join_request.save()
+    return redirect('coach_dashboard')  # or wherever you want to redirect after

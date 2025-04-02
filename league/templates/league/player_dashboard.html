@@ -36,6 +36,18 @@
     </ul>
   </div>
   {% endif %}
+  {% if rejected_requests %}
+  <div class="alert alert-warning mt-4">
+    <h5>❌ Rejected Requests</h5>
+    <ul class="mb-0">
+      {% for req in rejected_requests %}
+        <li>
+          Your request to join <strong>{{ req.team.name }}</strong> was <span class="text-danger">rejected</span>.
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
 
 
 
