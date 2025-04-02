@@ -33,6 +33,7 @@ from .forms import PlayerSignupForm, JoinTeamRequestForm
 from threading import Thread
 from django.contrib import messages
 from django.db.models import Q
+from django.contrib.admin.views.decorators import staff_member_required
 
 def activate(request, uidb64, token):
     try:
@@ -1411,4 +1412,9 @@ def change_password(request):
         form = PasswordChangeForm(user=request.user)
     
     return render(request, 'league/custom_change_password.html', {'form': form})
+
+@staff_member_required
+def signin_log_view(request):
+    logs = SignInLog.objects.select_related('user').order_by('-timestamp')[:100]  # Show latest 100
+    return render(request, 'league/signin_log.html', {'logs': logs})
 

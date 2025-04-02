@@ -8,6 +8,7 @@ from league import views
 from api import views as api_views
 from league.views import request_join_team, review_join_requests, approve_join_request
 from league import views as league_views
+from league.views import signin_log_view
 
 # REST API
 router = routers.DefaultRouter()
@@ -77,6 +78,6 @@ urlpatterns += [
     path('accounts/password_change/', auth_views.PasswordChangeView.as_view(template_name='registration/password_change_form.html'), name='password_change'),
     path('accounts/password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='registration/password_change_done.html'), name='password_change_done'),
     path('account/change-password/', league_views.change_password, name='custom_change_password'),
-
+    path('admin/signin-log/', signin_log_view, name='signin_log'),
 
 ]
