@@ -36,18 +36,37 @@
     </ul>
   </div>
   {% endif %}
+
+
+
   {% if rejected_requests %}
   <div class="alert alert-warning mt-4">
-    <h5>❌ Rejected Requests</h5>
-    <ul class="mb-0">
-      {% for req in rejected_requests %}
-        <li>
-          Your request to join <strong>{{ req.team.name }}</strong> was <span class="text-danger">rejected</span>.
+    <h5>❌ Rejected Join Requests</h5>
+    <ul class="mb-0 list-unstyled">
+      {% for request in rejected_requests %}
+        <li class="d-flex justify-content-between align-items-center mb-2">
+          <span>
+            You were <strong>not approved</strong> to join <strong>{{ request.team.name }}</strong>.
+          </span>
+          <div class="d-flex gap-2">
+            <form method="post" action="{% url 're_request_join_team' request.team.id %}" class="d-inline">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-warning">Re-request</button>
+            </form>
+            <form method="post" action="{% url 'delete_join_request' request.id %}" class="d-inline">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </div>
         </li>
       {% endfor %}
     </ul>
   </div>
-  {% endif %}
+{% endif %}
+
+
+
+
 
 
 

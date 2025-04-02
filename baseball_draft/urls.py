@@ -70,6 +70,9 @@ urlpatterns += [
     path('request-join/<int:team_id>/', views.request_join_team, name='request_join_team'),
     path('approve-join-request/<int:request_id>/', views.approve_join_request, name='approve_join_request'),
     path('reject-join-request/<int:request_id>/', views.reject_join_request, name='reject_join_request'),
+    path('cancel-request/<int:request_id>/', views.cancel_join_request, name='cancel_join_request'),
+    path('re-request/<int:team_id>/', views.re_request_join_team, name='re_request_join_team'),
+    path('delete-request/<int:request_id>/', views.delete_join_request, name='delete_join_request'),
 
 
 ]

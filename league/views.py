@@ -1357,3 +1357,39 @@ def reject_join_request(request, request_id):
     join_request.reviewed_at = timezone.now()
     join_request.save()
     return redirect('coach_dashboard')  # or wherever you want to redirect after
+
+@login_required
+def cancel_join_request(request, request_id):
+    join_request = get_object_or_404(JoinTeamRequest, id=request_id, player=request.user.player_profile)
+
+    if join_request.is_approved is None:
+        join_request.delete()
+        messages.success(request, f"Cancelled join request to {join_request.team.name}.")
+    else:
+        messages.warning(request, "You can only cancel a pending request.")
+    
+    return redirect('find_teams')
+
+@login_required
+def re_request_join_team(request, team_id):
+    player = request.user.player_profile
+    team = get_object_or_404(Team, id=team_id)
+
+    # Delete the previous rejected request
+    JoinTeamRequest.objects.filter(team=team, player=player, is_approved=False).delete()
+
+    # Create a new pending request
+    JoinTeamRequest.objects.create(team=team, player=player)
+    messages.success(request, f"Re-requested to join {team.name}.")
+
+    return redirect('player_dashboard')
+
+
+
+@login_required
+def delete_join_request(request, request_id):
+    join_request = get_object_or_404(JoinTeamRequest, id=request_id, player=request.user.player_profile)
+    if request.method == 'POST':
+        join_request.delete()
+    return redirect('player_dashboard')
+
