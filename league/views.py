@@ -1403,7 +1403,8 @@ def change_password(request):
             form.save()
             update_session_auth_hash(request, form.user)  # Prevents logout after password change
             messages.success(request, '✅ Your password was successfully updated!')
-            return redirect('player_dashboard')  # Or any other page you want
+            #return redirect('player_dashboard')  # Or any other page you want
+            return redirect('dashboard')  # Or any other page you want
         else:
             messages.error(request, '⚠️ Please correct the error below.')
     else:
