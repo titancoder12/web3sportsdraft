@@ -1393,3 +1393,21 @@ def delete_join_request(request, request_id):
         join_request.delete()
     return redirect('player_dashboard')
 
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, form.user)  # Prevents logout after password change
+            messages.success(request, '✅ Your password was successfully updated!')
+            return redirect('player_dashboard')  # Or any other page you want
+        else:
+            messages.error(request, '⚠️ Please correct the error below.')
+    else:
+        form = PasswordChangeForm(user=request.user)
+    
+    return render(request, 'league/custom_change_password.html', {'form': form})
+
