@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Player, Division, Team, JoinTeamRequest
+from .models import Player, Division, Team, JoinTeamRequest, PlayerGameStat
 
 class PlayerForm(forms.ModelForm):
     class Meta:
@@ -99,3 +99,30 @@ class JoinTeamRequestForm(forms.ModelForm):
             existing_team_ids = player.teams.values_list('id', flat=True)
             requested_team_ids = JoinTeamRequest.objects.filter(player=player).values_list('team_id', flat=True)
             self.fields['team'].queryset = Team.objects.exclude(id__in=existing_team_ids.union(requested_team_ids))
+
+class PlayerGameStatForm(forms.ModelForm):
+    class Meta:
+        model = PlayerGameStat
+        fields = [
+            'game', 
+            'at_bats', #
+            'hits', #
+            'runs', #
+            'rbis', #
+            'home_runs',
+            'singles', #
+            'doubles', #
+            'triples', #
+            'strikeouts', #
+            'base_on_balls', #
+            'hit_by_pitch', #
+            'sacrifice_flies', #
+            'innings_pitched', #
+            'hits_allowed', 
+            'runs_allowed', #
+            'earned_runs', #
+            'walks_allowed', #
+            'strikeouts_pitching',
+            'home_runs_allowed',
+        ]
+

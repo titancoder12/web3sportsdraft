@@ -1,0 +1,11 @@
+{% extends "league/base.html" %}
+{% block content %}
+<h2>Submit Your Game Stats</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-primary">Submit Stats</button>
+</form>
+
+{% endblock %}

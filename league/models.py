@@ -121,6 +121,11 @@ class Game(models.Model):
 class PlayerGameStat(models.Model):
     player = models.ForeignKey("Player", on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    is_verified = models.BooleanField(default=False)
+    source = models.CharField(max_length=20, choices=[('self', 'Self'), ('coach', 'Coach')], default='coach')
+
+    # Stats: 
     at_bats = models.IntegerField(default=0)
     runs = models.IntegerField(default=0)
     hits = models.IntegerField(default=0)
