@@ -18,6 +18,10 @@
         </div>
       </nav>
     <div class="container mt-4">
+      <li><a href="{% url 'submit_stats' %}">Submit Stats</a></li>
+      {% if user.is_coach %}
+      <li><a href="{% url 'review_stats' %}">Review Stats</a></li>
+      {% endif %}
     {% block content %}{% endblock %}
   </div>
 </body>

@@ -29,11 +29,12 @@ from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 
-from .forms import PlayerSignupForm, JoinTeamRequestForm
+from .forms import PlayerSignupForm, JoinTeamRequestForm, PlayerGameStatForm
 from threading import Thread
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.admin.views.decorators import staff_member_required
+
 
 def activate(request, uidb64, token):
     try:
@@ -447,6 +448,12 @@ def player_dashboard(request):
         player=player,
         is_approved=False
     ).select_related('team')
+
+
+    # Self-entered stats, Verified stats, and General stats
+    verified_stats = PlayerGameStat.objects.filter(player=player, is_verified=True)
+    general_stats = PlayerGameStat.objects.filter(player=player)
+
 
 
     # Game stats for the player
@@ -1417,4 +1424,41 @@ def change_password(request):
 def signin_log_view(request):
     logs = SignInLog.objects.select_related('user').order_by('-timestamp')[:100]  # Show latest 100
     return render(request, 'league/signin_log.html', {'logs': logs})
+
+
+#############################################
+# Self-submitting game stats and coach review
+#############################################
+@login_required
+def submit_stats(request):
+    if request.method == 'POST':
+        form = PlayerGameStatForm(request.POST)
+        if form.is_valid():
+            stat = form.save(commit=False)
+            stat.player = request.user.player
+            stat.submitted_by = request.user
+            stat.source = 'self'
+            stat.is_verified = False
+            stat.save()
+            return redirect('player_dashboard')
+    else:
+        form = PlayerGameStatForm()
+    return render(request, 'league/submit_stats.html', {'form': form})
+
+@login_required
+def review_stats(request):
+    if not request.user.is_coach:
+        return HttpResponseForbidden()
+    pending_stats = PlayerGameStat.objects.filter(is_verified=False, source='self')
+    return render(request, 'league/review_stats.html', {'pending_stats': pending_stats})
+
+@login_required
+def verify_stat(request, stat_id):
+    stat = get_object_or_404(PlayerGameStat, id=stat_id)
+    if request.method == 'POST':
+        stat.is_verified = True
+        stat.save()
+        return redirect('review_stats')
+
+
 

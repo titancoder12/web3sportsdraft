@@ -1,0 +1,38 @@
+{% extends "league/base.html" %}
+{% block content %}
+<h2>Pending Player-Submitted Stats</h2>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Player</th>
+      <th>Game</th>
+      <th>Stats Summary</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for stat in pending_stats %}
+      <tr>
+        <td>{{ stat.player }}</td>
+        <td>{{ stat.game }}</td>
+        <td>
+          AB: {{ stat.at_bats }},
+          H: {{ stat.hits }},
+          HR: {{ stat.home_runs }},
+          RBI: {{ stat.rbis }}
+          <!-- Add more as needed -->
+        </td>
+        <td>
+          <form method="post" action="{% url 'verify_stat' stat.id %}">
+            {% csrf_token %}
+            <button class="btn btn-success btn-sm" type="submit">Verify</button>
+          </form>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4">No pending submissions.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
