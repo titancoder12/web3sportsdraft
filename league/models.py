@@ -29,7 +29,7 @@ class Team(models.Model):
     max_players = models.IntegerField(default=12)
 
     def __str__(self):
-        return f"{self.name} ({self.division})"
+        return f"{self.name}"
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='player_profile')
@@ -108,6 +108,7 @@ class PerformanceEvaluation(models.Model):
     class Meta:
         ordering = ['-date']
 
+from datetime import datetime
 class Game(models.Model):
     game_id = models.CharField(max_length=50, unique=True)
     team_home = models.ForeignKey("Team", on_delete=models.CASCADE, null=True, related_name="home_games")
@@ -117,6 +118,10 @@ class Game(models.Model):
     location = models.CharField(max_length=100)
     finalized = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
+    
+    def __str__(self):
+        date_str = self.date.strftime("%Y-%m-%d") if self.date else "Unknown Date" 
+        return f"{self.team_away} vs {self.team_home} {date_str}"
 
 class PlayerGameStat(models.Model):
     player = models.ForeignKey("Player", on_delete=models.CASCADE)
