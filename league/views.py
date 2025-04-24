@@ -1322,7 +1322,7 @@ def request_join_team(request, team_id):
 
     # Check if already a member or already requested
     if player.teams.filter(id=team.id).exists() or JoinTeamRequest.objects.filter(player=player, team=team).exists():
-        messages.warning(request, "You’ve already joined or requested this team.")
+        messages.warning(request, "You've already joined or requested this team.")
     else:
         JoinTeamRequest.objects.create(player=player, team=team)
         messages.success(request, f"Request to join {team.name} sent!")
@@ -1435,7 +1435,7 @@ def submit_stats(request):
         form = PlayerGameStatForm(request.POST)
         if form.is_valid():
             stat = form.save(commit=False)
-            stat.player = request.user.player
+            stat.player = request.user.player_profile
             stat.submitted_by = request.user
             stat.source = 'self'
             stat.is_verified = False
@@ -1447,7 +1447,8 @@ def submit_stats(request):
 
 @login_required
 def review_stats(request):
-    if not request.user.is_coach:
+    is_coach = Team.objects.filter(coaches=request.user).exists()
+    if not is_coach:
         return HttpResponseForbidden()
     pending_stats = PlayerGameStat.objects.filter(is_verified=False, source='self')
     return render(request, 'league/review_stats.html', {'pending_stats': pending_stats})

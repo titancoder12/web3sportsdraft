@@ -105,24 +105,46 @@ class PlayerGameStatForm(forms.ModelForm):
         model = PlayerGameStat
         fields = [
             'game', 
-            'at_bats', #
-            'hits', #
-            'runs', #
-            'rbis', #
+            'at_bats',
+            'hits',
+            'runs',
+            'rbis',
             'home_runs',
-            'singles', #
-            'doubles', #
-            'triples', #
-            'strikeouts', #
-            'base_on_balls', #
-            'hit_by_pitch', #
-            'sacrifice_flies', #
-            'innings_pitched', #
+            'singles',
+            'doubles',
+            'triples',
+            'strikeouts',
+            'base_on_balls',
+            'hit_by_pitch',
+            'sacrifice_flies',
+            'innings_pitched',
             'hits_allowed', 
-            'runs_allowed', #
-            'earned_runs', #
-            'walks_allowed', #
+            'runs_allowed',
+            'earned_runs',
+            'walks_allowed',
             'strikeouts_pitching',
             'home_runs_allowed',
         ]
+        widgets = {
+            'game': forms.Select(attrs={'class': 'form-select'}),
+            'at_bats': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'hits': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'runs': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'rbis': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'home_runs': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'singles': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'doubles': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'triples': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'strikeouts': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'base_on_balls': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'hit_by_pitch': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'sacrifice_flies': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'innings_pitched': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': 0.1}),
+            'hits_allowed': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'runs_allowed': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'earned_runs': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'walks_allowed': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'strikeouts_pitching': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'home_runs_allowed': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+        }
 

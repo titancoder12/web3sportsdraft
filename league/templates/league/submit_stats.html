@@ -1,11 +1,216 @@
-{% extends "league/base.html" %}
-{% block content %}
-<h2>Submit Your Game Stats</h2>
+{% extends "league/base.html" %} {% block content %}
+<div class="card shadow my-4">
+  <div class="card-header py-3 bg-primary">
+    <h4 class="m-0 font-weight-bold text-white">Submit Your Game Stats</h4>
+  </div>
+  <div class="card-body">
+    <form method="post" class="needs-validation" novalidate>
+      {% csrf_token %}
 
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit" class="btn btn-primary">Submit Stats</button>
-</form>
+      <div class="mb-4">
+        <h5 class="border-bottom pb-2">Game Information</h5>
+        <div class="form-group mb-3">
+          <label for="{{ form.game.id_for_label }}" class="form-label fw-bold"
+            >Select Game:</label
+          >
+          {{ form.game.errors }} {{ form.game }}
+        </div>
+      </div>
 
+      <div class="mb-4">
+        <h5 class="border-bottom pb-2">Batting Stats</h5>
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label
+              for="{{ form.at_bats.id_for_label }}"
+              class="form-label fw-bold"
+              >At Bats:</label
+            >
+            {{ form.at_bats.errors }} {{ form.at_bats }}
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="{{ form.hits.id_for_label }}" class="form-label fw-bold"
+              >Hits:</label
+            >
+            {{ form.hits.errors }} {{ form.hits }}
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="{{ form.runs.id_for_label }}" class="form-label fw-bold"
+              >Runs:</label
+            >
+            {{ form.runs.errors }} {{ form.runs }}
+          </div>
+          <div class="col-md-3 mb-3">
+            <label for="{{ form.rbis.id_for_label }}" class="form-label fw-bold"
+              >RBIs:</label
+            >
+            {{ form.rbis.errors }} {{ form.rbis }}
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label
+              for="{{ form.singles.id_for_label }}"
+              class="form-label fw-bold"
+              >Singles:</label
+            >
+            {{ form.singles.errors }} {{ form.singles }}
+          </div>
+          <div class="col-md-3 mb-3">
+            <label
+              for="{{ form.doubles.id_for_label }}"
+              class="form-label fw-bold"
+              >Doubles:</label
+            >
+            {{ form.doubles.errors }} {{ form.doubles }}
+          </div>
+          <div class="col-md-3 mb-3">
+            <label
+              for="{{ form.triples.id_for_label }}"
+              class="form-label fw-bold"
+              >Triples:</label
+            >
+            {{ form.triples.errors }} {{ form.triples }}
+          </div>
+          <div class="col-md-3 mb-3">
+            <label
+              for="{{ form.home_runs.id_for_label }}"
+              class="form-label fw-bold"
+              >Home Runs:</label
+            >
+            {{ form.home_runs.errors }} {{ form.home_runs }}
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <label
+              for="{{ form.strikeouts.id_for_label }}"
+              class="form-label fw-bold"
+              >Strikeouts:</label
+            >
+            {{ form.strikeouts.errors }} {{ form.strikeouts }}
+          </div>
+          <div class="col-md-3 mb-3">
+            <label
+              for="{{ form.base_on_balls.id_for_label }}"
+              class="form-label fw-bold"
+              >Walks:</label
+            >
+            {{ form.base_on_balls.errors }} {{ form.base_on_balls }}
+          </div>
+          <div class="col-md-3 mb-3">
+            <label
+              for="{{ form.hit_by_pitch.id_for_label }}"
+              class="form-label fw-bold"
+              >Hit By Pitch:</label
+            >
+            {{ form.hit_by_pitch.errors }} {{ form.hit_by_pitch }}
+          </div>
+          <div class="col-md-3 mb-3">
+            <label
+              for="{{ form.sacrifice_flies.id_for_label }}"
+              class="form-label fw-bold"
+              >Sacrifice Flies:</label
+            >
+            {{ form.sacrifice_flies.errors }} {{ form.sacrifice_flies }}
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <h5 class="border-bottom pb-2">Pitching Stats</h5>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label
+              for="{{ form.innings_pitched.id_for_label }}"
+              class="form-label fw-bold"
+              >Innings Pitched:</label
+            >
+            {{ form.innings_pitched.errors }} {{ form.innings_pitched }}
+          </div>
+          <div class="col-md-4 mb-3">
+            <label
+              for="{{ form.hits_allowed.id_for_label }}"
+              class="form-label fw-bold"
+              >Hits Allowed:</label
+            >
+            {{ form.hits_allowed.errors }} {{ form.hits_allowed }}
+          </div>
+          <div class="col-md-4 mb-3">
+            <label
+              for="{{ form.runs_allowed.id_for_label }}"
+              class="form-label fw-bold"
+              >Runs Allowed:</label
+            >
+            {{ form.runs_allowed.errors }} {{ form.runs_allowed }}
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label
+              for="{{ form.earned_runs.id_for_label }}"
+              class="form-label fw-bold"
+              >Earned Runs:</label
+            >
+            {{ form.earned_runs.errors }} {{ form.earned_runs }}
+          </div>
+          <div class="col-md-4 mb-3">
+            <label
+              for="{{ form.walks_allowed.id_for_label }}"
+              class="form-label fw-bold"
+              >Walks Allowed:</label
+            >
+            {{ form.walks_allowed.errors }} {{ form.walks_allowed }}
+          </div>
+          <div class="col-md-4 mb-3">
+            <label
+              for="{{ form.strikeouts_pitching.id_for_label }}"
+              class="form-label fw-bold"
+              >Strikeouts:</label
+            >
+            {{ form.strikeouts_pitching.errors }} {{ form.strikeouts_pitching }}
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label
+              for="{{ form.home_runs_allowed.id_for_label }}"
+              class="form-label fw-bold"
+              >Home Runs Allowed:</label
+            >
+            {{ form.home_runs_allowed.errors }} {{ form.home_runs_allowed }}
+          </div>
+        </div>
+      </div>
+
+      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <button type="submit" class="btn btn-primary">Submit Stats</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Basic form validation
+  document.addEventListener("DOMContentLoaded", function () {
+    const forms = document.getElementsByClassName("needs-validation");
+    Array.prototype.filter.call(forms, function (form) {
+      form.addEventListener(
+        "submit",
+        function (event) {
+          if (form.checkValidity() === false) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          form.classList.add("was-validated");
+        },
+        false
+      );
+    });
+  });
+</script>
 {% endblock %}
