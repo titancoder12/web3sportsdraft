@@ -1,28 +1,35 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Web3Sports</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+  <head>
+    <title>Web3Sports</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
-        <a class="navbar-brand" href="/">Web3Sports</a>
-        <div class="ms-auto d-flex align-items-center">
-          {% if user.is_authenticated %}
-            <span class="navbar-text text-light me-2">Logged in as {{ user.username }}</span>
-            <form method="post" action="{% url 'logout' %}">
-              {% csrf_token %}
-              <button class="btn btn-sm btn-outline-light">Logout</button>
-            </form>
-          {% endif %}
-        </div>
-      </nav>
+      <a class="navbar-brand" href="/">Web3Sports</a>
+      <div class="ms-auto d-flex align-items-center">
+        {% if user.is_authenticated %}
+        <span class="navbar-text text-light me-2"
+          >Logged in as {{ user.username }}</span
+        >
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-light">Logout</button>
+        </form>
+        {% endif %}
+      </div>
+    </nav>
     <div class="container mt-4">
-      <li><a href="{% url 'submit_stats' %}">Submit Stats</a></li>
-      {% if user.is_coach %}
+      {% if user.is_authenticated %} {% if user.teams.all %}
+      <!-- User is a coach -->
       <li><a href="{% url 'review_stats' %}">Review Stats</a></li>
-      {% endif %}
-    {% block content %}{% endblock %}
-  </div>
-</body>
+      {% elif user.player_profile %}
+      <!-- User is a player -->
+      <li><a href="{% url 'submit_stats' %}">Submit Stats</a></li>
+      {% endif %} {% endif %} {% block content %}{% endblock %}
+    </div>
+  </body>
 </html>

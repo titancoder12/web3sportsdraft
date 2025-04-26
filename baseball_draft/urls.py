@@ -86,5 +86,5 @@ from league.views import submit_stats, review_stats, verify_stat
 urlpatterns += [
     path('submit-stats/', submit_stats, name='submit_stats'),
     path('review-stats/', review_stats, name='review_stats'),
-    path('verify-stats/<int:stat_id>/', verify_stat, name='verify_stat'),
+    path('coach/verify-stat/<int:stat_id>/', verify_stat, name='verify_stat'),
 ]
