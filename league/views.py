@@ -570,8 +570,8 @@ def player_dashboard(request):
 
 def box_score_view(request, game_id):
     game = get_object_or_404(Game, id=game_id)
-    home_team_stats = PlayerGameStat.objects.filter(game=game, player__teams=game.team_home)
-    away_team_stats = PlayerGameStat.objects.filter(game=game, player__teams=game.team_away)
+    home_team_stats = PlayerGameStat.objects.filter(game=game, player__teams=game.team_home, is_verified=True)
+    away_team_stats = PlayerGameStat.objects.filter(game=game, player__teams=game.team_away, is_verified=True)
 
     context = {
         'game': game,
