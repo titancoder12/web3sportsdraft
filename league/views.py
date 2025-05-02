@@ -14,7 +14,7 @@ from django.db.models import Sum, Count
 from django.db.models.functions import Coalesce
 
 from collections import defaultdict
-from league.models import TeamLog, JoinTeamRequest
+from league.models import TeamLog, JoinTeamRequest, SignInLog
 
 from django.utils import timezone
 from django.http import HttpResponseForbidden
