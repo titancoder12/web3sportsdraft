@@ -184,3 +184,49 @@ The Lineup Builder is a planning and compliance tool for coaches to construct ba
 - Ties into Player, Team, Game models  
 - Future: Pull stats/evals for lineup suggestions  
 - Pitch count and position compliance integration (optional)
+
+## 16. FairPlay Rule Engine (Planned)
+
+### 16.1 Overview
+To comply with diverse fair play rules set by organizations such as BC Minor Baseball Association (BCMBA), PDP will include a modular FairPlay Rule Engine. This engine allows enforcement of dynamic constraints like minimum innings played, batting appearances, position limits, and bench rotations per league or age group.
+
+### 16.2 FairPlay RuleSet Model
+
+```python
+class FairPlayRuleSet(models.Model):
+    league = models.ForeignKey("League", on_delete=models.CASCADE)
+    age_group = models.CharField(max_length=10)  # e.g., "11U"
+    min_innings_per_player = models.IntegerField(default=0)
+    max_consecutive_bench_innings = models.IntegerField(default=0)
+    min_plate_appearances = models.IntegerField(default=0)
+    enforce_plate_appearance = models.BooleanField(default=False)
+    enforce_position_rotation = models.BooleanField(default=False)
+    max_innings_per_position = JSONField(default=dict)  # e.g., {"C": 3, "P": 3}
+    eh_option_start_date = models.DateField(null=True, blank=True)
+    eh_option_end_date = models.DateField(null=True, blank=True)
+    no_mandated_fair_play = models.BooleanField(default=False)
+```
+
+### 16.3 Sample Rules from BCMBA
+
+- **10U & 11U**: All players must play 3 innings in a 6-inning game; no sitting two consecutive innings (summer).
+- **13U A/AA/AAA**: Minimum 3 innings in 6–7 inning games, 2 innings in 5-inning games.
+- **18U AA**: Must play 3 defensive outs and have one plate appearance.
+- **15U/18U AAA**: No mandated fair play rules; acknowledgment form required.
+
+### 16.4 Implementation Strategy
+
+- Extend the `Game` model to include a reference to the assigned `FairPlayRuleSet`.
+- During lineup planning, validate:
+  - Innings played >= `min_innings_per_player`
+  - No player benched for more than `max_consecutive_bench_innings`
+  - Position counts against `max_innings_per_position`
+  - At least `min_plate_appearances` if enforced
+- Support for automatic warnings and inline UI validations in the Lineup Builder.
+- Track historical lineup entries for compliance over time (e.g., check bench rotation patterns).
+
+### 16.5 Compliance and Reporting
+
+- Generate compliance status reports per game.
+- Show rule violations directly in the lineup UI.
+- Maintain audit logs for league admins.
