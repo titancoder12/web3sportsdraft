@@ -1,6 +1,6 @@
 # league/admin.py
 from django.contrib import admin
-from .models import League, Division, Team, Player, DraftPick, SignInLog
+from .models import League, Division, Team, Player, DraftPick, SignInLog, Game
 
 
 admin.site.site_title = "Baseball League Admin"
@@ -22,6 +22,12 @@ class TeamAdmin(admin.ModelAdmin):
     list_display = ('name', 'division')
     filter_horizontal = ('coaches',)
     list_filter = ('division',)
+
+@admin.register(Game)
+class GameAdmin(admin.ModelAdmin):
+    list_display = ('team_home', 'team_away', 'date', 'time', 'location', 'finalized', 'is_verified')
+    list_filter = ('finalized', 'is_verified', 'date')
+    search_fields = ('team_home__name', 'team_away__name', 'location')
 
 # Custom method to display teams in list_display
 def player_teams(obj):

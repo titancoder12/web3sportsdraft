@@ -24,8 +24,11 @@
     </nav>
     <div class="container mt-4">
       {% if user.is_authenticated %} {% if user.teams.all %}
-      <!-- User is a coach -->
-      <li><a href="{% url 'review_stats' %}">Review Stats</a></li>
+      <ul class="nav mb-3">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'review_stats' %}">Review Stats</a>
+        </li>
+      </ul>
       {% endif %} {% endif %} {% block content %}{% endblock %}
     </div>
   </body>

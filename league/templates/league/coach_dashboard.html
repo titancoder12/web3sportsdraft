@@ -1,132 +1,152 @@
-{% extends 'league/base.html' %}
-{% load league_tags %}
-{% block content %}
+{% extends 'league/base.html' %} {% load league_tags %} {% block content %}
 <div class="container mt-4">
   <h2 class="mb-4 text-primary">🏟️ Coach Dashboard</h2>
 
-
-
-  <a href="{% url 'custom_change_password' %}" class="btn btn-outline-secondary btn-sm">
+  <a
+    href="{% url 'custom_change_password' %}"
+    class="btn btn-outline-secondary btn-sm"
+  >
     Change Password
   </a>
-
-
-
 
   {% if pending_requests %}
   <h4 class="mt-5">⏳ Pending Player Join Requests</h4>
   <ul class="list-group mb-4">
     {% for request in pending_requests %}
-      <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
-        <span class="mb-2 mb-md-0">
-          <strong>{{ request.player.first_name }} {{ request.player.last_name }}</strong>
-          requested to join <strong>{{ request.team.name }}</strong>
-        </span>
-        <div class="d-flex gap-2">
-          <form method="post" action="{% url 'approve_join_request' request.id %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-success">Approve</button>
-          </form>
-          <form method="post" action="{% url 'reject_join_request' request.id %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
-          </form>
-        </div>
-      </li>
+    <li
+      class="list-group-item d-flex justify-content-between align-items-center flex-wrap"
+    >
+      <span class="mb-2 mb-md-0">
+        <strong
+          >{{ request.player.first_name }} {{ request.player.last_name
+          }}</strong
+        >
+        requested to join <strong>{{ request.team.name }}</strong>
+      </span>
+      <div class="d-flex gap-2">
+        <form
+          method="post"
+          action="{% url 'approve_join_request' request.id %}"
+        >
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-success">Approve</button>
+        </form>
+        <form method="post" action="{% url 'reject_join_request' request.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-danger">
+            Reject
+          </button>
+        </form>
+      </div>
+    </li>
     {% endfor %}
   </ul>
-{% else %}
+  {% else %}
   <p class="text-muted">No pending requests.</p>
-{% endif %}
+  {% endif %} {% if divisions %}
+  <div
+    class="mb-4 p-3 rounded"
+    style="background-color: #e3f2fd; border: 1px solid #90caf9"
+  >
+    <h4 class="text-primary mb-3">📚 Your Divisions</h4>
+    <ul class="list-group">
+      {% for division in divisions %}
+      <li
+        class="list-group-item d-flex justify-content-between align-items-center"
+      >
+        <span>{{ division.name }}</span>
+        <a
+          href="{% url 'dashboard_with_division' division.id %}"
+          class="btn btn-sm btn-outline-primary"
+        >
+          View Division
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %} {% if teams %}
+  <h4 class="mb-3 text-success">👥 Your Teams</h4>
+  {% for team in teams %}
+  <div class="card mb-4 shadow-sm border border-success-subtle">
+    <div
+      class="card-header bg-success-subtle d-flex justify-content-between align-items-center"
+    >
+      <div>
+        <strong>{{ team.name }}</strong>
+        <span class="text-muted">({{ team.division.name }})</span>
+      </div>
+      <div class="d-flex gap-2">
+        <a
+          href="{% url 'team_logs' team.id %}"
+          class="btn btn-sm btn-outline-dark"
+          >View Team Logs</a
+        >
+      </div>
+    </div>
 
-
-
-
-
-
-
-  {% if divisions %}
-    <div class="mb-4 p-3 rounded" style="background-color: #e3f2fd; border: 1px solid #90caf9;">
-      <h4 class="text-primary mb-3">📚 Your Divisions</h4>
-      <ul class="list-group">
-        {% for division in divisions %}
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>{{ division.name }}</span>
-            <a href="{% url 'dashboard_with_division' division.id %}" class="btn btn-sm btn-outline-primary">
-              View Division
-            </a>
-          </li>
+    <div class="card-body">
+      <h6 class="text-secondary">Players:</h6>
+      <ul class="mb-3">
+        {% for player in team.players.all %}
+        <li>
+          <a
+            href="{% url 'coach_player_detail' player.id %}"
+            class="text-decoration-none"
+          >
+            {{ player.first_name }} {{ player.last_name }}
+          </a>
+        </li>
         {% endfor %}
       </ul>
-    </div>
-  {% endif %}
 
-  {% if teams %}
-    <h4 class="mb-3 text-success">👥 Your Teams</h4>
-    {% for team in teams %}
-      <div class="card mb-4 shadow-sm border border-success-subtle">
-        <div class="card-header bg-success-subtle d-flex justify-content-between align-items-center">
-          <div>
-            <strong>{{ team.name }}</strong> <span class="text-muted">({{ team.division.name }})</span>
-          </div>
-          <a href="{% url 'team_logs' team.id %}" class="btn btn-sm btn-outline-dark">View Team Logs</a>
-        </div>
-
-        <div class="card-body">
-          <h6 class="text-secondary">Players:</h6>
-          <ul class="mb-3">
-            {% for player in team.players.all %}
-              <li>
-                <a href="{% url 'coach_player_detail' player.id %}" class="text-decoration-none">
-                  {{ player.first_name }} {{ player.last_name }}
-                </a>
-              </li>
-            {% endfor %}
-          </ul>
-
-          <h6 class="mt-4 mb-2">📅 Game History</h6>
-          <div class="p-2 rounded" style="background-color: #fff9e6; border: 1px solid #000;">
-            {% with games=games_by_team|get_item:team.id %}
-              {% if games %}
-                <table class="table table-sm table-bordered table-hover align-middle bg-white mb-0">
-                  <thead class="table-warning">
-                    <tr>
-                      <th style="width: 20%;">Date</th>
-                      <th style="width: 35%;">Opponent</th>
-                      <th style="width: 25%;">Location</th>
-                      <th style="width: 20%;">Box Score</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for game in games %}
-                      {% if game.team_home == team %}
-                        <tr class="table-primary">
-                          <td>{{ game.date|date:"Y-m-d" }}</td>
-                          <td>{{ game.team_away.name }}</td>
-                          <td>{{ game.location }}</td>
-                          <td><a href="{% url 'box_score' game.id %}">View</a></td>
-                        </tr>
-                      {% else %}
-                        <tr class="table-warning">
-                          <td>{{ game.date|date:"Y-m-d" }}</td>
-                          <td>{{ game.team_home.name }}</td>
-                          <td>{{ game.location }}</td>
-                          <td><a href="{% url 'box_score' game.id %}">View</a></td>
-                        </tr>
-                      {% endif %}
-                    {% endfor %}
-                  </tbody>
-                </table>
-              {% else %}
-                <p class="text-muted mb-0">No games recorded for this team.</p>
-              {% endif %}
-            {% endwith %}
-          </div>
-        </div>
+      <h6 class="mt-4 mb-2">📅 Game History</h6>
+      <div
+        class="p-2 rounded"
+        style="background-color: #fff9e6; border: 1px solid #000"
+      >
+        {% with games=games_by_team|get_item:team.id %} {% if games %}
+        <table
+          class="table table-sm table-bordered table-hover align-middle bg-white mb-0"
+        >
+          <thead class="table-warning">
+            <tr>
+              <th style="width: 20%">Date</th>
+              <th style="width: 35%">Opponent</th>
+              <th style="width: 25%">Location</th>
+              <th style="width: 20%">Box Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for game in games %} {% if game.team_home == team %}
+            <tr class="table-primary">
+              <td>{{ game.date|date:"Y-m-d" }}</td>
+              <td>{{ game.team_away.name }}</td>
+              <td>{{ game.location }}</td>
+              <td>
+                <a href="{% url 'box_score' game.id %}">View</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr class="table-warning">
+              <td>{{ game.date|date:"Y-m-d" }}</td>
+              <td>{{ game.team_home.name }}</td>
+              <td>{{ game.location }}</td>
+              <td>
+                <a href="{% url 'box_score' game.id %}">View</a>
+              </td>
+            </tr>
+            {% endif %} {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted mb-0">No games recorded for this team.</p>
+        {% endif %} {% endwith %}
       </div>
-    {% endfor %}
-  {% else %}
-    <p class="text-muted">You are not assigned to any teams yet.</p>
+    </div>
+  </div>
+  {% endfor %} {% else %}
+  <p class="text-muted">You are not assigned to any teams yet.</p>
   {% endif %}
 </div>
 {% endblock %}

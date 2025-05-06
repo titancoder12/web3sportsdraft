@@ -1,26 +1,24 @@
 # league/views.py
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse  # Ensure this line is present
-from .models import Team, Player, DraftPick, Division, PlayerGameStat, Game, PlayerLog, PlayerNote, PlayerJournalEntry, PerformanceEvaluation
+from django.http import JsonResponse, HttpResponseForbidden
+from .models import (
+    Team, Player, DraftPick, Division, PlayerGameStat, Game, PlayerLog, PlayerNote, 
+    PlayerJournalEntry, PerformanceEvaluation, TeamLog, JoinTeamRequest, SignInLog
+)
 from django.contrib.auth.decorators import login_required
-from .forms import PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm, PlayerCSVUploadForm
+from .forms import (
+    PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm, PlayerCSVUploadForm,
+    JoinTeamRequestForm, PlayerGameStatForm, GameForm
+)
 from django.contrib.auth.models import User
 import csv
 from io import TextIOWrapper
 from datetime import datetime
 from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 from django.db.models.functions import Coalesce
-
 from collections import defaultdict
-from league.models import TeamLog, JoinTeamRequest, SignInLog
-
 from django.utils import timezone
-from django.http import HttpResponseForbidden
-from django.contrib.auth import login
-
-
 from django.contrib.auth import login
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
@@ -28,12 +26,9 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
-
-from .forms import PlayerSignupForm, JoinTeamRequestForm, PlayerGameStatForm
-from threading import Thread
-from django.contrib import messages
-from django.db.models import Q
 from django.contrib.admin.views.decorators import staff_member_required
+import uuid
+from threading import Thread
 
 
 def activate(request, uidb64, token):
@@ -1460,6 +1455,236 @@ def verify_stat(request, stat_id):
         stat.is_verified = True
         stat.save()
         return redirect('review_stats')
+
+@login_required
+def fair_play_rules(request, league_id):
+    league = get_object_or_404(League, id=league_id)
+    if not request.user.is_staff and not league.coordinators.filter(id=request.user.id).exists():
+        return HttpResponseForbidden()
+    
+    rules = FairPlayRuleSet.objects.filter(league=league)
+    if request.method == 'POST':
+        form = FairPlayRuleSetForm(request.POST)
+        if form.is_valid():
+            rule = form.save(commit=False)
+            rule.league = league
+            rule.save()
+            messages.success(request, 'Fair play rules updated successfully.')
+            return redirect('fair_play_rules', league_id=league.id)
+    else:
+        form = FairPlayRuleSetForm()
+    
+    return render(request, 'league/fair_play_rules.html', {
+        'league': league,
+        'rules': rules,
+        'form': form
+    })
+
+@login_required
+def lineup_builder(request, team_id):
+    team = get_object_or_404(Team, id=team_id)
+    if not team.coaches.filter(id=request.user.id).exists():
+        return HttpResponseForbidden()
+    
+    if request.method == 'POST':
+        form = LineupPlanForm(request.POST, team=team)
+        if form.is_valid():
+            lineup = form.save(commit=False)
+            lineup.team = team
+            lineup.coach = request.user
+            lineup.save()
+            messages.success(request, 'Lineup plan created successfully.')
+            return redirect('lineup_entries', lineup_id=lineup.id)
+    else:
+        form = LineupPlanForm(team=team)
+    
+    lineups = LineupPlan.objects.filter(team=team).order_by('-created_at')
+    return render(request, 'league/lineup_builder.html', {
+        'team': team,
+        'form': form,
+        'lineups': lineups
+    })
+
+@login_required
+def lineup_entries(request, lineup_id):
+    lineup = get_object_or_404(LineupPlan, id=lineup_id)
+    if not lineup.team.coaches.filter(id=request.user.id).exists():
+        return HttpResponseForbidden()
+    
+    if request.method == 'POST':
+        form = LineupEntryForm(request.POST, team=lineup.team)
+        if form.is_valid():
+            entry = form.save(commit=False)
+            entry.lineup_plan = lineup
+            entry.save()
+            messages.success(request, 'Player added to lineup successfully.')
+            return redirect('lineup_entries', lineup_id=lineup.id)
+    else:
+        form = LineupEntryForm(team=lineup.team)
+    
+    entries = LineupEntry.objects.filter(lineup_plan=lineup).order_by('batting_order')
+    return render(request, 'league/lineup_entries.html', {
+        'lineup': lineup,
+        'form': form,
+        'entries': entries
+    })
+
+# @login_required
+# def player_availability(request, game_id):
+#     game = get_object_or_404(Game, id=game_id)
+#     team = game.team_home if request.user in game.team_home.coaches.all() else game.team_away
+#     if not team:
+#         return HttpResponseForbidden()
+#     
+#     if request.method == 'POST':
+#         player_id = request.POST.get('player_id')
+#         player = get_object_or_404(Player, id=player_id, team=team)
+#         form = PlayerAvailabilityForm(request.POST)
+#         if form.is_valid():
+#             availability, created = PlayerAvailability.objects.update_or_create(
+#                 player=player,
+#                 game=game,
+#                 defaults=form.cleaned_data
+#             )
+#             messages.success(request, f'Availability updated for {player}.')
+#             return redirect('player_availability', game_id=game.id)
+#     
+#     availabilities = PlayerAvailability.objects.filter(
+#         game=game,
+#         player__team=team
+#     ).select_related('player')
+#     
+#     return render(request, 'league/player_availability.html', {
+#         'game': game,
+#         'team': team,
+#         'availabilities': availabilities
+#     })
+
+@login_required
+def check_lineup_compliance(request, lineup_id):
+    lineup = get_object_or_404(LineupPlan, id=lineup_id)
+    if not lineup.team.coaches.filter(id=request.user.id).exists():
+        return HttpResponseForbidden()
+    
+    # Get the fair play rules for the team's league and age group
+    try:
+        rules = FairPlayRuleSet.objects.get(
+            league=lineup.team.division.league,
+            age_group=lineup.team.division.name[:3]  # Assuming division name starts with age group
+        )
+    except FairPlayRuleSet.DoesNotExist:
+        messages.warning(request, 'No fair play rules found for this team.')
+        return redirect('lineup_entries', lineup_id=lineup.id)
+    
+    # Check compliance for each player
+    entries = LineupEntry.objects.filter(lineup_plan=lineup)
+    for entry in entries:
+        compliance, created = LineupCompliance.objects.get_or_create(
+            lineup_plan=lineup,
+            player=entry.player
+        )
+        
+        # Calculate innings played and position violations
+        positions = entry.positions_by_inning
+        innings_played = len(positions)
+        position_counts = {}
+        for pos in positions.values():
+            position_counts[pos] = position_counts.get(pos, 0) + 1
+        
+        # Check for violations
+        violations = []
+        if innings_played < rules.min_innings_per_player:
+            violations.append(f"Plays only {innings_played} innings (minimum {rules.min_innings_per_player})")
+        
+        if rules.enforce_position_rotation:
+            for pos, count in position_counts.items():
+                max_innings = rules.max_innings_per_position.get(pos, 0)
+                if count > max_innings:
+                    violations.append(f"Plays {pos} for {count} innings (maximum {max_innings})")
+        
+        # Update compliance record
+        compliance.innings_played = innings_played
+        compliance.position_violations = position_counts
+        compliance.is_compliant = len(violations) == 0
+        compliance.violation_details = "\n".join(violations)
+        compliance.save()
+    
+    return redirect('lineup_entries', lineup_id=lineup.id)
+
+@login_required
+def finalize_lineup(request, lineup_id):
+    lineup = get_object_or_404(LineupPlan, id=lineup_id)
+    if not lineup.team.coaches.filter(id=request.user.id).exists():
+        return HttpResponseForbidden()
+    
+    if request.method == 'POST':
+        lineup.is_final = True
+        lineup.save()
+        messages.success(request, 'Lineup has been finalized.')
+    return redirect('lineup_entries', lineup_id=lineup.id)
+
+@login_required
+def edit_lineup_entry(request, entry_id):
+    entry = get_object_or_404(LineupEntry, id=entry_id)
+    if not entry.lineup_plan.team.coaches.filter(id=request.user.id).exists():
+        return HttpResponseForbidden()
+    
+    if request.method == 'POST':
+        form = LineupEntryForm(request.POST, instance=entry, team=entry.lineup_plan.team)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Lineup entry updated successfully.')
+            return redirect('lineup_entries', lineup_id=entry.lineup_plan.id)
+    else:
+        form = LineupEntryForm(instance=entry, team=entry.lineup_plan.team)
+    
+    return render(request, 'league/edit_lineup_entry.html', {
+        'form': form,
+        'entry': entry,
+        'lineup': entry.lineup_plan
+    })
+
+@login_required
+def remove_lineup_entry(request, entry_id):
+    entry = get_object_or_404(LineupEntry, id=entry_id)
+    if not entry.lineup_plan.team.coaches.filter(id=request.user.id).exists():
+        return HttpResponseForbidden()
+    
+    if request.method == 'POST':
+        lineup_id = entry.lineup_plan.id
+        entry.delete()
+        messages.success(request, 'Player removed from lineup.')
+        return redirect('lineup_entries', lineup_id=lineup_id)
+    
+    return render(request, 'league/remove_lineup_entry.html', {
+        'entry': entry,
+        'lineup': entry.lineup_plan
+    })
+
+@login_required
+def create_game(request, team_id):
+    team = get_object_or_404(Team, id=team_id)
+    
+    # Check if user is a coach for this team
+    if not team.coaches.filter(id=request.user.id).exists():
+        return HttpResponseForbidden("You are not authorized to create games for this team.")
+    
+    if request.method == 'POST':
+        form = GameForm(request.POST, team_home=team)
+        if form.is_valid():
+            game = form.save(commit=False)
+            game.team_home = team
+            game.game_id = f"GAME-{uuid.uuid4().hex[:8].upper()}"
+            game.save()
+            messages.success(request, 'Game created successfully!')
+            return redirect('lineup_builder', team_id=team.id)
+    else:
+        form = GameForm(team_home=team)
+    
+    return render(request, 'league/create_game.html', {
+        'form': form,
+        'team': team
+    })
 
 
 

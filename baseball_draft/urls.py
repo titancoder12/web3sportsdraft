@@ -47,6 +47,9 @@ urlpatterns = [
     # API Endpoints for Box Score Uploads
     path('upload-boxscore/', api_views.upload_box_score, name='upload_box_score'),
     path('verify-stats/<int:stat_id>/', api_views.verify_player_stats, name='verify_player_stats'),
+    
+    # Include league URLs
+    path('', include('league.urls')),
 ]
 
 urlpatterns += [
@@ -79,7 +82,6 @@ urlpatterns += [
     path('accounts/password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='registration/password_change_done.html'), name='password_change_done'),
     path('account/change-password/', league_views.change_password, name='custom_change_password'),
     path('admin/signin-log/', signin_log_view, name='signin_log'),
-
 ]
 
 from league.views import submit_stats, review_stats, verify_stat

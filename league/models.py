@@ -238,6 +238,92 @@ class SignInLog(models.Model):
     def __str__(self):
         return f"{self.user.username} signed in at {self.timestamp}"
 
+class FairPlayRuleSet(models.Model):
+    league = models.ForeignKey(League, on_delete=models.CASCADE, related_name='fair_play_rules')
+    age_group = models.CharField(max_length=10)  # e.g., "11U"
+    min_innings_per_player = models.IntegerField(default=0)
+    max_consecutive_bench_innings = models.IntegerField(default=0)
+    min_plate_appearances = models.IntegerField(default=0)
+    enforce_plate_appearance = models.BooleanField(default=False)
+    enforce_position_rotation = models.BooleanField(default=False)
+    max_innings_per_position = models.JSONField(default=dict)  # e.g., {"C": 3, "P": 3}
+    eh_option_start_date = models.DateField(null=True, blank=True)
+    eh_option_end_date = models.DateField(null=True, blank=True)
+    no_mandated_fair_play = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.league.name} - {self.age_group} Rules"
+
+class PlayerAvailability(models.Model):
+    STATUS_CHOICES = [
+        ('available', 'Available'),
+        ('absent', 'Absent'),
+        ('late', 'Late'),
+        ('injured', 'Injured')
+    ]
+    
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='availability')
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='player_availability')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='available')
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('player', 'game')
+        verbose_name_plural = "Player Availabilities"
+
+    def __str__(self):
+        return f"{self.player} - {self.game} - {self.status}"
+
+class LineupPlan(models.Model):
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='lineup_plans')
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='lineup_plans', null=True, blank=True)
+    coach = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_lineups')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_final = models.BooleanField(default=False)
+    notes = models.TextField(blank=True)
+
+    def __str__(self):
+        game_str = f" vs {self.game.team_away}" if self.game else " (Practice)"
+        return f"{self.team.name}{game_str} - {self.created_at.strftime('%Y-%m-%d')}"
+
+class LineupEntry(models.Model):
+    lineup_plan = models.ForeignKey(LineupPlan, on_delete=models.CASCADE, related_name='entries')
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='lineup_entries')
+    batting_order = models.IntegerField()
+    positions_by_inning = models.JSONField(default=dict)  # e.g., {"1": "C", "2": "P", "3": "1B"}
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [
+            ('lineup_plan', 'batting_order'),
+            ('lineup_plan', 'player')
+        ]
+        ordering = ['batting_order']
+
+    def __str__(self):
+        return f"{self.player} - Batting {self.batting_order}"
+
+class LineupCompliance(models.Model):
+    lineup_plan = models.ForeignKey(LineupPlan, on_delete=models.CASCADE, related_name='compliance_checks')
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='compliance_checks')
+    innings_played = models.IntegerField(default=0)
+    consecutive_bench_innings = models.IntegerField(default=0)
+    plate_appearances = models.IntegerField(default=0)
+    position_violations = models.JSONField(default=dict)  # e.g., {"C": 4} for exceeding max innings
+    is_compliant = models.BooleanField(default=True)
+    violation_details = models.TextField(blank=True)
+    checked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('lineup_plan', 'player')
+
+    def __str__(self):
+        return f"{self.player} - {self.lineup_plan} - {'Compliant' if self.is_compliant else 'Non-compliant'}"
+
 
 
 
