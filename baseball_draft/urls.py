@@ -84,7 +84,7 @@ urlpatterns += [
 
 from league.views import submit_stats, review_stats, verify_stat
 urlpatterns += [
-    path('submit-stats/', submit_stats, name='submit_stats'),
+    # path('submit-stats/', submit_stats, name='submit_stats'),  # Temporarily disabled
     path('review-stats/', review_stats, name='review_stats'),
     path('coach/verify-stat/<int:stat_id>/', verify_stat, name='verify_stat'),
 ]

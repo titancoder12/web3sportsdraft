@@ -26,9 +26,6 @@
       {% if user.is_authenticated %} {% if user.teams.all %}
       <!-- User is a coach -->
       <li><a href="{% url 'review_stats' %}">Review Stats</a></li>
-      {% elif user.player_profile %}
-      <!-- User is a player -->
-      <li><a href="{% url 'submit_stats' %}">Submit Stats</a></li>
       {% endif %} {% endif %} {% block content %}{% endblock %}
     </div>
   </body>
