@@ -12,11 +12,14 @@ from league.views import signin_log_view
 
 # REST API
 router = routers.DefaultRouter()
-router.register(r'players', api_views.PlayerViewSet)
-router.register(r'teams', api_views.TeamViewSet)
-router.register(r'divisions', api_views.DivisionViewSet)
-router.register(r'games', api_views.GameViewSet)
-router.register(r'stats', api_views.PlayerGameStatViewSet)
+router.register(r'leagues', api_views.LeagueViewSet, basename='league')
+router.register(r'players', api_views.PlayerViewSet, basename='player')
+router.register(r'teams', api_views.TeamViewSet, basename='team')
+router.register(r'divisions', api_views.DivisionViewSet, basename='division')
+router.register(r'games', api_views.GameViewSet, basename='game')
+router.register(r'stats', api_views.PlayerGameStatViewSet, basename='playergamestat')
+router.register(r'fairplay-rules', api_views.FairPlayRuleSetViewSet, basename='fairplayruleset')
+router.register(r'lineup-plans', api_views.LineupPlanViewSet, basename='lineupplan')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -46,7 +49,7 @@ urlpatterns += [
     path('toggle-draft/<int:division_id>/', views.toggle_draft_status, name='toggle_draft_status'),
     path('trade/<int:division_id>/', views.trade_players, name='trade_players'),
     path('import-players/', views.import_players, name='import_players'),
-    path('boxscore/<str:game_id>/', views.box_score_view, name='box_score'),
+    path('boxscore/<int:game_id>/', views.box_score_view, name='box_score'),
     path('coach/dashboard/', views.coach_dashboard, name='coach_dashboard'),
     path('coach/team/<int:team_id>/add-log/', views.add_team_log, name='add_team_log'),
     path("coach/team/<int:team_id>/logs/", views.team_logs_view, name="team_logs"),
@@ -74,6 +77,19 @@ urlpatterns += [
     path('accounts/password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='registration/password_change_done.html'), name='password_change_done'),
     path('account/change-password/', league_views.change_password, name='custom_change_password'),
     path('admin/signin-log/', signin_log_view, name='signin_log'),
+    
+    # Fair Play and Lineup URLs
+    path('fair-play-rules/<int:league_id>/', views.fair_play_rules, name='fair_play_rules'),
+    path('lineup-builder/<int:team_id>/', views.lineup_builder, name='lineup_builder'),
+    path('lineup-entries/<int:lineup_id>/', views.lineup_entries, name='lineup_entries'),
+    path('add-lineup-entry/<int:lineup_id>/', views.add_lineup_entry, name='add_lineup_entry'),
+    path('check-lineup-compliance/<int:lineup_id>/', views.check_lineup_compliance, name='check_lineup_compliance'),
+    path('finalize-lineup/<int:lineup_id>/', views.finalize_lineup, name='finalize_lineup'),
+    path('edit-lineup-entry/<int:entry_id>/', views.edit_lineup_entry, name='edit_lineup_entry'),
+    path('remove-lineup-entry/<int:entry_id>/', views.remove_lineup_entry, name='remove_lineup_entry'),
+    path('create-game/<int:team_id>/', views.create_game, name='create_game'),
+    path('create-lineup/<int:team_id>/', views.create_lineup, name='create_lineup'),
+    path('register-player/', views.register_player, name='register_player'),
 ]
 
 from league.views import submit_stats, review_stats, verify_stat
@@ -81,4 +97,14 @@ urlpatterns += [
     # path('submit-stats/', submit_stats, name='submit_stats'),  # Temporarily disabled
     path('review-stats/', review_stats, name='review_stats'),
     path('coach/verify-stat/<int:stat_id>/', verify_stat, name='verify_stat'),
+]
+
+urlpatterns += [
+    path('update-player/<int:player_id>/', views.update_player, name='update_player'),
+]
+
+urlpatterns += [
+    path('record-stats/<str:game_id>/', views.record_stats, name='record_stats'),
+    path('finalize-game/<str:game_id>/', views.finalize_game, name='finalize_game'),
+    path('verify-stat/<int:stat_id>/', views.verify_stat, name='verify_stat'),
 ]

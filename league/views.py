@@ -3,12 +3,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseForbidden
 from .models import (
     Team, Player, DraftPick, Division, PlayerGameStat, Game, PlayerLog, PlayerNote, 
-    PlayerJournalEntry, PerformanceEvaluation, TeamLog, JoinTeamRequest, SignInLog
+    PlayerJournalEntry, PerformanceEvaluation, TeamLog, JoinTeamRequest, SignInLog,
+    League, LineupPlan, LineupEntry, LineupCompliance, FairPlayRuleSet
 )
 from django.contrib.auth.decorators import login_required
 from .forms import (
     PlayerForm, PlayerProfileForm, PlayerSignupForm, CoachCommentForm, PlayerCSVUploadForm,
-    JoinTeamRequestForm, PlayerGameStatForm, GameForm
+    JoinTeamRequestForm, PlayerGameStatForm, GameForm, LineupPlanForm, LineupEntryForm, FairPlayRuleSetForm
 )
 from django.contrib.auth.models import User
 import csv
@@ -570,9 +571,11 @@ def box_score_view(request, game_id):
 
     context = {
         'game': game,
+        'home_team': game.team_home,
+        'away_team': game.team_away,
         'home_team_stats': home_team_stats,
         'away_team_stats': away_team_stats,
-        "back_url": request.META.get("HTTP_REFERER", "/"),
+        'back_url': request.META.get('HTTP_REFERER', '/'),
     }
     return render(request, 'league/box_score.html', context)
 
@@ -834,6 +837,7 @@ def dashboard(request, division_id=None):
     # If user is only a coach and not a coordinator, redirect to coach dashboard
     if is_coach and not is_coordinator and not division_id:
         return redirect('coach_dashboard')
+
     # Get divisions the user can access
     coach_divisions = Division.objects.filter(teams__coaches=user).distinct()
     coordinator_divisions = Division.objects.filter(coordinators=user).distinct()
@@ -843,7 +847,7 @@ def dashboard(request, division_id=None):
     if division_id:
         division = get_object_or_404(Division, id=division_id)
         if division not in divisions:
-            return render(request, 'league/error.html', {'message': 'You do not have access to this division.', 'divisions': divisions})
+            return HttpResponseForbidden("You do not have access to this division.")
     else:
         division = coach_divisions.first()  # Try coach division first
         if not division:
@@ -852,74 +856,8 @@ def dashboard(request, division_id=None):
             return render(request, 'league/no_division.html', {'divisions': divisions})
 
     teams = Team.objects.filter(division=division).prefetch_related('players', 'coaches')
-
-    # Sorting for Available Players
-    sort_by = request.GET.get('sort_by', 'last_name')
-    sort_order = request.GET.get('sort_order', 'asc')
-    order_prefix = '-' if sort_order == 'desc' else ''
-    valid_sort_fields = ['first_name', 'last_name', 'rating']
-    if sort_by not in valid_sort_fields:
-        sort_by = 'last_name'
-    
-    available_players = Player.objects.filter(
-        division=division, team__isnull=True, teams__isnull=True
-    ).order_by(f"{order_prefix}{sort_by}")
-
+    available_players = Player.objects.filter(division=division, team__isnull=True, teams__isnull=True)
     draft_picks = DraftPick.objects.filter(division=division)
-    is_coach = Team.objects.filter(coaches=user, division=division).exists()
-    is_coordinator = division.coordinators.filter(id=user.id).exists()
-
-    # Handle POST actions
-    if request.method == 'POST':
-        if 'undraft_player_id' in request.POST:
-            if not (is_coordinator or is_coach):
-                return render(request, 'league/no_permission.html')
-            
-            player_id = request.POST.get('undraft_player_id')
-            player = get_object_or_404(Player, id=player_id, division=division)
-            
-            if player.team or player.teams.exists():  # Player is drafted if either field is set
-                # For coaches, check if they coach any of the player's teams
-                if is_coach and not is_coordinator:
-                    can_undraft = False
-                    if player.team and user in player.team.coaches.all():
-                        can_undraft = True
-                    elif player.teams.exists():
-                        for team in player.teams.all():
-                            if user in team.coaches.all():
-                                can_undraft = True
-                                break
-                    if not can_undraft:
-                        return render(request, 'league/no_permission.html')
-                
-                # Undraft: clear both team and teams
-                DraftPick.objects.filter(player=player, division=division).delete()
-                player.team = None
-                player.teams.clear()
-                player.draft_round = None
-                player.save()
-            return redirect('dashboard_with_division', division_id=division.id)
-        
-        elif 'delete_player_id' in request.POST:
-            if not is_coordinator:
-                return render(request, 'league/no_permission.html')
-            
-            player_id = request.POST.get('delete_player_id')
-            player = get_object_or_404(Player, id=player_id, division=division)
-            
-            if player.user:
-                player.user.delete()
-            else:
-                player.delete()
-            return redirect('dashboard_with_division', division_id=division.id)
-
-    # Team rosters: Use teams.players, fall back to player_set for transition
-    team_rosters = {}
-    for team in teams:
-        roster = list(team.players.all())  # Primary: ManyToMany
-        if not roster:  # Fallback to ForeignKey if teams is empty
-            roster = list(team.player_set.all())
-        team_rosters[team.id] = roster
 
     return render(request, 'league/dashboard.html', {
         'division': division,
@@ -927,11 +865,8 @@ def dashboard(request, division_id=None):
         'teams': teams,
         'available_players': available_players,
         'draft_picks': draft_picks,
-        'team_rosters': team_rosters,
         'is_coach': is_coach,
         'is_coordinator': is_coordinator,
-        'sort_by': sort_by,
-        'sort_order': sort_order,
     })
 
 # league/views.py (relevant section)
@@ -1454,13 +1389,17 @@ def verify_stat(request, stat_id):
     if request.method == 'POST':
         stat.is_verified = True
         stat.save()
-        return redirect('review_stats')
+        messages.success(request, 'Stats verified successfully.')
+        return redirect('box_score', game_id=stat.game.id)
+    return render(request, 'league/verify_stat.html', {'stat': stat})
 
 @login_required
 def fair_play_rules(request, league_id):
     league = get_object_or_404(League, id=league_id)
-    if not request.user.is_staff and not league.coordinators.filter(id=request.user.id).exists():
-        return HttpResponseForbidden()
+    
+    # Check if user is a coordinator of the league
+    if not league.coordinators.filter(id=request.user.id).exists():
+        return HttpResponseForbidden("You do not have permission to view fair play rules.")
     
     rules = FairPlayRuleSet.objects.filter(league=league)
     if request.method == 'POST':
@@ -1602,6 +1541,14 @@ def check_lineup_compliance(request, lineup_id):
                 if count > max_innings:
                     violations.append(f"Plays {pos} for {count} innings (maximum {max_innings})")
         
+        # Check plate appearances if enforced
+        if rules.enforce_plate_appearance:
+            # Each player gets one plate appearance per inning
+            plate_appearances = innings_played
+            if plate_appearances < rules.min_plate_appearances:
+                violations.append(f"Has only {plate_appearances} plate appearance(s) (minimum {rules.min_plate_appearances})")
+            compliance.plate_appearances = plate_appearances
+        
         # Update compliance record
         compliance.innings_played = innings_played
         compliance.position_violations = position_counts
@@ -1662,6 +1609,78 @@ def remove_lineup_entry(request, entry_id):
     })
 
 @login_required
+def create_lineup(request, team_id):
+    team = get_object_or_404(Team, id=team_id)
+    if not team.coaches.filter(id=request.user.id).exists():
+        return HttpResponseForbidden()
+    
+    if request.method == 'POST':
+        form = LineupPlanForm(request.POST, team=team)
+        if form.is_valid():
+            lineup = form.save(commit=False)
+            lineup.team = team
+            lineup.coach = request.user
+            lineup.save()
+            messages.success(request, 'Lineup plan created successfully.')
+            return redirect('lineup_entries', lineup_id=lineup.id)
+    else:
+        form = LineupPlanForm(team=team)
+    
+    return render(request, 'league/create_lineup.html', {
+        'team': team,
+        'form': form
+    })
+
+@login_required
+def add_lineup_entry(request, lineup_id):
+    lineup = get_object_or_404(LineupPlan, id=lineup_id)
+    if not lineup.team.coaches.filter(id=request.user.id).exists():
+        return HttpResponseForbidden()
+    
+    if request.method == 'POST':
+        form = LineupEntryForm(request.POST, team=lineup.team)
+        if form.is_valid():
+            entry = form.save(commit=False)
+            entry.lineup_plan = lineup
+            entry.save()
+            messages.success(request, 'Player added to lineup successfully.')
+            return redirect('lineup_entries', lineup_id=lineup.id)
+    else:
+        form = LineupEntryForm(team=lineup.team)
+    
+    return render(request, 'league/add_lineup_entry.html', {
+        'form': form,
+        'lineup': lineup
+    })
+
+@login_required
+def record_stats(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+    if request.method == 'POST':
+        form = PlayerGameStatForm(request.POST)
+        if form.is_valid():
+            stat = form.save(commit=False)
+            stat.game = game
+            stat.submitted_by = request.user
+            stat.save()
+            messages.success(request, 'Stats recorded successfully.')
+            return redirect('box_score', game_id=game.id)
+    else:
+        form = PlayerGameStatForm()
+    return render(request, 'league/record_stats.html', {'form': form, 'game': game})
+
+@login_required
+def finalize_game(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+    if request.method == 'POST':
+        game.finalized = True
+        game.is_verified = True
+        game.save()
+        messages.success(request, 'Game finalized successfully.')
+        return redirect('box_score', game_id=game.id)
+    return render(request, 'league/finalize_game.html', {'game': game})
+
+@login_required
 def create_game(request, team_id):
     team = get_object_or_404(Team, id=team_id)
     
@@ -1684,6 +1703,50 @@ def create_game(request, team_id):
     return render(request, 'league/create_game.html', {
         'form': form,
         'team': team
+    })
+
+@login_required
+def register_player(request):
+    if request.method == 'POST':
+        form = PlayerForm(request.POST)
+        if form.is_valid():
+            player = form.save(commit=False)
+            player.user = request.user
+            player.save()
+            form.save_m2m()  # Save many-to-many relationships
+            messages.success(request, 'Player registered successfully!')
+            return redirect('player_dashboard')
+    else:
+        form = PlayerForm()
+    
+    return render(request, 'league/register_player.html', {
+        'form': form
+    })
+
+@login_required
+def update_player(request, player_id):
+    player = get_object_or_404(Player, id=player_id)
+    
+    # Check if user is authorized to update this player
+    if not (request.user.is_superuser or 
+            player.division.coordinators.filter(id=request.user.id).exists() or
+            player.teams.filter(coaches=request.user).exists()):
+        return HttpResponseForbidden("You are not authorized to update this player.")
+    
+    if request.method == 'POST':
+        form = PlayerForm(request.POST, instance=player)
+        if form.is_valid():
+            player = form.save(commit=False)
+            player.save()
+            form.save_m2m()  # Save many-to-many relationships
+            messages.success(request, 'Player updated successfully!')
+            return redirect('player_detail', player_id=player.id)
+    else:
+        form = PlayerForm(instance=player)
+    
+    return render(request, 'league/update_player.html', {
+        'form': form,
+        'player': player
     })
 
 

@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from league.models import League, Division, Team, Player, Game, PlayerGameStat, FairPlayRuleSet, LineupPlan
 from datetime import datetime, time
+from django.utils import timezone
 
 class ViewTests(TestCase):
     def setUp(self):
@@ -15,6 +16,8 @@ class ViewTests(TestCase):
         self.client.login(username="testuser", password="testpass")
         
         self.league = League.objects.create(name="Test League")
+        self.league.coordinators.add(self.user)  # Make user a coordinator
+        
         self.division = Division.objects.create(
             name="11U",
             league=self.league
@@ -23,6 +26,8 @@ class ViewTests(TestCase):
             name="Test Team",
             division=self.division
         )
+        self.team.coaches.add(self.user)
+        
         self.player = Player.objects.create(
             first_name="Test",
             last_name="Player",
@@ -33,19 +38,25 @@ class ViewTests(TestCase):
 
     def test_dashboard_view(self):
         response = self.client.get(reverse('dashboard'))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)  # Redirects to appropriate dashboard
+        self.assertRedirects(response, reverse('player_dashboard'))
 
     def test_dashboard_with_division_view(self):
         response = self.client.get(reverse('dashboard_with_division', args=[self.division.id]))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)  # Redirects to appropriate dashboard
+        self.assertRedirects(response, reverse('player_dashboard'))
 
     def test_player_detail_view(self):
         response = self.client.get(reverse('player_detail', args=[self.player.id]))
         self.assertEqual(response.status_code, 200)
 
     def test_player_profile_view(self):
+        """Test player profile view"""
+        self.client.force_login(self.user)  # Force login to ensure authentication
         response = self.client.get(reverse('player_profile'))
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'league/player_profile.html')
+        self.assertContains(response, "Test Player")
 
 class FairPlayTests(TestCase):
     def setUp(self):
@@ -57,6 +68,8 @@ class FairPlayTests(TestCase):
         self.client.login(username="testcoach", password="testpass")
         
         self.league = League.objects.create(name="Test League")
+        self.league.coordinators.add(self.user)  # Make user a coordinator
+        
         self.division = Division.objects.create(
             name="11U",
             league=self.league
@@ -120,14 +133,18 @@ class GameTests(TestCase):
             game_id="TEST123",
             team_home=self.team1,
             team_away=self.team2,
-            date=datetime.now(),
+            date=timezone.now(),
             time=time(14, 0),
             location="Test Field"
         )
 
     def test_box_score_view(self):
-        response = self.client.get(reverse('box_score', args=[self.game.game_id]))
+        """Test box score view"""
+        response = self.client.get(reverse('box_score', kwargs={'game_id': self.game.game_id}))
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'league/box_score.html')
+        self.assertContains(response, self.team1.name)
+        self.assertContains(response, self.team2.name)
 
     def test_review_stats_view(self):
         response = self.client.get(reverse('review_stats'))

@@ -1,0 +1,64 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container mt-4">
+  <h2>Lineup Entries for {{ lineup_plan.team.name }}</h2>
+
+  {% if messages %}
+  <div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <h3>Add New Entry</h3>
+      <form method="post">
+        {% csrf_token %} {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Add Entry</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h3>Current Entries</h3>
+      {% if entries %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Batting Order</th>
+            <th>Positions</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in entries %}
+          <tr>
+            <td>{{ entry.player.get_full_name }}</td>
+            <td>{{ entry.batting_order }}</td>
+            <td>{{ entry.positions_by_inning }}</td>
+            <td>
+              <a
+                href="{% url 'edit_lineup_entry' entry.id %}"
+                class="btn btn-sm btn-warning"
+                >Edit</a
+              >
+              <a
+                href="{% url 'delete_lineup_entry' entry.id %}"
+                class="btn btn-sm btn-danger"
+                >Delete</a
+              >
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>No entries yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

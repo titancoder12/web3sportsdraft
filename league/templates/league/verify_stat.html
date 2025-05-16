@@ -1,0 +1,24 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container">
+  <h2>Verify Player Stats</h2>
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">{{ stat.player.get_full_name }}</h5>
+      <p class="card-text">
+        <strong>Game:</strong> {{ stat.game.game_id }}<br />
+        <strong>At Bats:</strong> {{ stat.at_bats }}<br />
+        <strong>Hits:</strong> {{ stat.hits }}<br />
+        <strong>Runs:</strong> {{ stat.runs }}<br />
+        <strong>RBIs:</strong> {{ stat.rbis }}
+      </p>
+    </div>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Verify Stats</button>
+    <a href="{% url 'box_score' stat.game.id %}" class="btn btn-secondary"
+      >Cancel</a
+    >
+  </form>
+</div>
+{% endblock %}

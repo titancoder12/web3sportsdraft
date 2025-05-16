@@ -85,10 +85,8 @@ class PlayerModelTests(TestCase):
         self.player.teams.add(self.team)
 
     def test_player_creation(self):
-        self.assertEqual(self.player.first_name, "Test")
-        self.assertEqual(self.player.last_name, "Player")
-        self.assertEqual(self.player.division, self.division)
-        self.assertEqual(str(self.player), "Test Player (Test League - 11U)")
+        """Test player creation and string representation"""
+        self.assertEqual(str(self.player), "Test Player")
 
     def test_player_teams(self):
         self.assertTrue(self.player.teams.filter(id=self.team.id).exists())

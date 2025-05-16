@@ -6,6 +6,7 @@ from league.forms import (
     FairPlayRuleSetForm, LineupPlanForm, LineupEntryForm
 )
 from datetime import datetime, time
+import json
 
 class LeagueFormTests(TestCase):
     def setUp(self):
@@ -45,15 +46,14 @@ class DivisionFormTests(TestCase):
 
 class TeamFormTests(TestCase):
     def setUp(self):
-        self.league = League.objects.create(name="Test League")
-        self.division = Division.objects.create(
-            name="11U",
-            league=self.league
-        )
+        self.user = User.objects.create_user(username='testcoach', password='testpass')
+        self.league = League.objects.create(name='Test League')
+        self.division = Division.objects.create(name='11U', league=self.league)
         self.form_data = {
             'name': 'Test Team',
             'division': self.division.id,
-            'max_players': 12
+            'max_players': 12,
+            'coaches': [self.user.id]
         }
 
     def test_team_form_valid(self):
@@ -149,50 +149,38 @@ class FairPlayRuleSetFormTests(TestCase):
 
 class LineupFormTests(TestCase):
     def setUp(self):
-        self.league = League.objects.create(name="Test League")
-        self.division = Division.objects.create(
-            name="11U",
-            league=self.league
-        )
-        self.team = Team.objects.create(
-            name="Test Team",
-            division=self.division
-        )
-        self.coach = User.objects.create_user(
-            username="testcoach",
-            password="testpass"
-        )
-        self.team.coaches.add(self.coach)
-        
-        self.lineup_plan = LineupPlan.objects.create(
-            team=self.team,
-            coach=self.coach,
-            notes="Test lineup"
-        )
-        
+        self.user = User.objects.create_user(username='testcoach', password='testpass')
+        self.league = League.objects.create(name='Test League')
+        self.division = Division.objects.create(name='11U', league=self.league)
+        self.team = Team.objects.create(name='Test Team', division=self.division)
+        self.team.coaches.add(self.user)
         self.player = Player.objects.create(
-            first_name="Test",
-            last_name="Player",
-            division=self.division
+            first_name='Test',
+            last_name='Player',
+            division=self.division,
+            user=self.user
         )
         self.player.teams.add(self.team)
 
     def test_lineup_plan_form_valid(self):
         form_data = {
             'team': self.team.id,
-            'notes': 'Test lineup'
+            'coach': self.user.id,
+            'notes': 'Test lineup notes'
         }
-        form = LineupPlanForm(data=form_data)
+        form = LineupPlanForm(data=form_data, team=self.team)
         self.assertTrue(form.is_valid())
 
     def test_lineup_entry_form_valid(self):
         form_data = {
             'player': self.player.id,
             'batting_order': 1,
-            'positions_by_inning': '{"1": "C", "2": "P", "3": "1B"}'
+            'positions_by_inning': '{"1": "P", "2": "C", "3": "1B"}'
         }
-        form = LineupEntryForm(data=form_data)
-        self.assertTrue(form.is_valid())
+        form = LineupEntryForm(data=form_data, team=self.team)
+        if not form.is_valid():
+            print("Form errors:", form.errors)
+        self.assertTrue(form.is_valid(), form.errors.as_text())
 
     def test_lineup_entry_form_invalid(self):
         form_data = {
@@ -200,5 +188,5 @@ class LineupFormTests(TestCase):
             'batting_order': 0,  # Invalid batting order
             'positions_by_inning': '{"1": "C", "2": "P", "3": "1B"}'
         }
-        form = LineupEntryForm(data=form_data)
+        form = LineupEntryForm(data=form_data, team=self.team)
         self.assertFalse(form.is_valid()) 

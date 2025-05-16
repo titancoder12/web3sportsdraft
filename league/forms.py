@@ -2,14 +2,15 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Player, Division, Team, JoinTeamRequest, PlayerGameStat, FairPlayRuleSet, LineupPlan, LineupEntry, Game
+from .models import Player, Division, Team, JoinTeamRequest, PlayerGameStat, FairPlayRuleSet, LineupPlan, LineupEntry, Game, League
 from django.db.models import Q
 from django.utils import timezone
+import json
 
 class PlayerForm(forms.ModelForm):
     class Meta:
         model = Player
-        fields = ['first_name', 'last_name', 'age', 'position', 'rating', 'division']
+        fields = ['first_name', 'last_name', 'age', 'position', 'rating', 'division', 'teams', 'user', 'parent_name', 'parent_email', 'parent_phone']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'required': 'required'}),
@@ -17,6 +18,10 @@ class PlayerForm(forms.ModelForm):
             'position': forms.TextInput(attrs={'class': 'form-control'}),
             'rating': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100}),
             'division': forms.Select(attrs={'class': 'form-control'}),
+            'teams': forms.SelectMultiple(attrs={'class': 'select2'}),
+            'parent_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'parent_email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'parent_phone': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -25,6 +30,9 @@ class PlayerForm(forms.ModelForm):
         self.fields['position'].required = False
         self.fields['rating'].required = False
         self.fields['division'].required = True
+        self.fields['parent_name'].required = False
+        self.fields['parent_email'].required = False
+        self.fields['parent_phone'].required = False
 
 class PlayerProfileForm(forms.ModelForm):
     class Meta:
@@ -105,73 +113,21 @@ class JoinTeamRequestForm(forms.ModelForm):
 class PlayerGameStatForm(forms.ModelForm):
     class Meta:
         model = PlayerGameStat
-        fields = [
-            'game', 
-            'at_bats',
-            'hits',
-            'runs',
-            'rbis',
-            'home_runs',
-            'singles',
-            'doubles',
-            'triples',
-            'strikeouts',
-            'base_on_balls',
-            'hit_by_pitch',
-            'sacrifice_flies',
-            'innings_pitched',
-            'hits_allowed', 
-            'runs_allowed',
-            'earned_runs',
-            'walks_allowed',
-            'strikeouts_pitching',
-            'home_runs_allowed',
-        ]
+        fields = ['player', 'at_bats', 'hits', 'runs', 'rbis']
         widgets = {
-            'game': forms.Select(attrs={'class': 'form-select'}),
-            'at_bats': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'hits': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'runs': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'rbis': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'home_runs': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'singles': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'doubles': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'triples': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'strikeouts': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'base_on_balls': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'hit_by_pitch': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'sacrifice_flies': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'innings_pitched': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': 0.1}),
-            'hits_allowed': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'runs_allowed': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'earned_runs': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'walks_allowed': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'strikeouts_pitching': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'home_runs_allowed': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
+            'player': forms.Select(attrs={'class': 'form-control'}),
+            'at_bats': forms.NumberInput(attrs={'class': 'form-control'}),
+            'hits': forms.NumberInput(attrs={'class': 'form-control'}),
+            'runs': forms.NumberInput(attrs={'class': 'form-control'}),
+            'rbis': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
 class FairPlayRuleSetForm(forms.ModelForm):
     class Meta:
         model = FairPlayRuleSet
-        fields = [
-            'league', 'age_group', 'min_innings_per_player',
-            'max_consecutive_bench_innings', 'min_plate_appearances',
-            'enforce_plate_appearance', 'enforce_position_rotation',
-            'max_innings_per_position', 'eh_option_start_date',
-            'eh_option_end_date', 'no_mandated_fair_play'
-        ]
+        fields = ['league', 'age_group', 'min_innings_per_player', 'max_consecutive_bench_innings', 'min_plate_appearances', 'enforce_plate_appearance', 'enforce_position_rotation', 'max_innings_per_position']
         widgets = {
-            'league': forms.Select(attrs={'class': 'form-select'}),
-            'age_group': forms.TextInput(attrs={'class': 'form-control'}),
-            'min_innings_per_player': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'max_consecutive_bench_innings': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'min_plate_appearances': forms.NumberInput(attrs={'class': 'form-control', 'min': 0}),
-            'enforce_plate_appearance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'enforce_position_rotation': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'max_innings_per_position': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'eh_option_start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'eh_option_end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'no_mandated_fair_play': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'max_innings_per_position': forms.Textarea(attrs={'rows': 4}),
         }
 
 # class PlayerAvailabilityForm(forms.ModelForm):
@@ -186,19 +142,33 @@ class FairPlayRuleSetForm(forms.ModelForm):
 class LineupPlanForm(forms.ModelForm):
     class Meta:
         model = LineupPlan
-        fields = ['game', 'notes']
+        fields = ['team', 'coach', 'notes']
         widgets = {
-            'game': forms.Select(attrs={'class': 'form-select'}),
-            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'notes': forms.Textarea(attrs={'rows': 4}),
+            'coach': forms.HiddenInput(),
+            'team': forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
         team = kwargs.pop('team', None)
         super().__init__(*args, **kwargs)
         if team:
-            self.fields['game'].queryset = Game.objects.filter(
-                Q(team_home=team) | Q(team_away=team)
-            ).filter(date__gte=timezone.now())
+            self.fields['team'].initial = team
+            self.fields['coach'].initial = team.coaches.first()
+            self.fields['team'].required = True
+            self.fields['coach'].required = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        team = cleaned_data.get('team')
+        coach = cleaned_data.get('coach')
+        
+        if not team:
+            raise forms.ValidationError("Team is required")
+        if not coach:
+            raise forms.ValidationError("Coach is required")
+            
+        return cleaned_data
 
 class LineupEntryForm(forms.ModelForm):
     class Meta:
@@ -215,16 +185,44 @@ class LineupEntryForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if team:
             self.fields['player'].queryset = team.players.all()
+            self.fields['player'].required = True
+            self.fields['batting_order'].required = True
+            self.fields['positions_by_inning'].required = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        batting_order = cleaned_data.get('batting_order')
+        positions = cleaned_data.get('positions_by_inning')
+        player = cleaned_data.get('player')
+        
+        if not player:
+            raise forms.ValidationError("Player is required")
+        
+        if batting_order is not None and batting_order < 1:
+            raise forms.ValidationError("Batting order must be at least 1")
+        
+        if positions:
+            try:
+                # Handle both string and dictionary inputs
+                if isinstance(positions, str):
+                    positions_dict = json.loads(positions)
+                else:
+                    positions_dict = positions
+                
+                if not isinstance(positions_dict, dict):
+                    raise forms.ValidationError("Positions must be a valid dictionary")
+            except json.JSONDecodeError:
+                raise forms.ValidationError("Invalid positions format")
+        
+        return cleaned_data
 
 class GameForm(forms.ModelForm):
     class Meta:
         model = Game
-        fields = ['team_away', 'date', 'time', 'location']
+        fields = ['game_id', 'team_home', 'team_away', 'date', 'time', 'location', 'finalized', 'is_verified']
         widgets = {
-            'team_away': forms.Select(attrs={'class': 'form-select'}),
-            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
-            'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'time': forms.TimeInput(attrs={'type': 'time'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -235,4 +233,54 @@ class GameForm(forms.ModelForm):
             self.fields['team_away'].queryset = Team.objects.filter(
                 division=team_home.division
             ).exclude(id=team_home.id)
+
+class LeagueForm(forms.ModelForm):
+    class Meta:
+        model = League
+        fields = ['name', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class DivisionForm(forms.ModelForm):
+    class Meta:
+        model = Division
+        fields = ['name', 'league', 'is_open', 'coordinators']
+        widgets = {
+            'coordinators': forms.SelectMultiple(attrs={'class': 'select2'}),
+        }
+
+class TeamForm(forms.ModelForm):
+    class Meta:
+        model = Team
+        fields = ['name', 'country', 'city', 'province_state', 'is_approved', 'division', 'coaches', 'max_players']
+        widgets = {
+            'coaches': forms.SelectMultiple(attrs={'class': 'select2'}),
+            'max_players': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'division': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].required = True
+        self.fields['division'].required = True
+        self.fields['max_players'].required = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+        division = cleaned_data.get('division')
+        max_players = cleaned_data.get('max_players')
+
+        if not name:
+            raise forms.ValidationError("Team name is required")
+        
+        if not division:
+            raise forms.ValidationError("Division is required")
+        
+        if max_players and max_players < 1:
+            raise forms.ValidationError("Maximum players must be at least 1")
+
+        return cleaned_data
 

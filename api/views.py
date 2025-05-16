@@ -215,3 +215,18 @@ class PlayerGameStatViewSet(viewsets.ModelViewSet):
     queryset = PlayerGameStat.objects.all()
     serializer_class = PlayerGameStatSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+class LeagueViewSet(viewsets.ModelViewSet):
+    queryset = League.objects.all()
+    serializer_class = LeagueSerializer
+    permission_classes = [IsAuthenticated]
+
+class FairPlayRuleSetViewSet(viewsets.ModelViewSet):
+    queryset = FairPlayRuleSet.objects.all()
+    serializer_class = FairPlayRuleSetSerializer
+    permission_classes = [IsAuthenticated]
+
+class LineupPlanViewSet(viewsets.ModelViewSet):
+    queryset = LineupPlan.objects.all()
+    serializer_class = LineupPlanSerializer
+    permission_classes = [IsAuthenticated]

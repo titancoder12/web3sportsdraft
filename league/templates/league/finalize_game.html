@@ -1,0 +1,13 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container">
+  <h2>Finalize Game {{ game.game_id }}</h2>
+  <p>
+    Are you sure you want to finalize this game? This action cannot be undone.
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Finalize Game</button>
+    <a href="{% url 'box_score' game.id %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

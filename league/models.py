@@ -1,10 +1,14 @@
 # league/models.py
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class League(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    coordinators = models.ManyToManyField(User, related_name='coordinated_leagues')
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.name
@@ -33,8 +37,8 @@ class Team(models.Model):
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='player_profile')
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
     age = models.IntegerField(null=True, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     birth_country = models.CharField(max_length=100, blank=True)
@@ -46,13 +50,9 @@ class Player(models.Model):
     description = models.TextField(blank=True)
     coach_comments = models.TextField(blank=True)
     division = models.ForeignKey(Division, on_delete=models.CASCADE, null=True, blank=True, related_name='players')
-
-
     number = models.IntegerField(null=True, blank=True)
     batting_throwing = models.CharField(max_length=10, blank=True)  # "B/T" Field
     height_weight = models.CharField(max_length=20, blank=True)  # "H/W" Field
-
-    # Performance Evaluations
     grip_strength = models.FloatField(null=True, blank=True)
     lateral_jump = models.FloatField(null=True, blank=True)
     shot_put = models.FloatField(null=True, blank=True)
@@ -63,8 +63,6 @@ class Player(models.Model):
     exit_velo = models.FloatField(null=True, blank=True)
     bat_speed = models.FloatField(null=True, blank=True)
     pitching_comment = models.TextField(blank=True)
-
-    # Personal Details
     birthdate = models.DateField(null=True, blank=True)
     parents_volunteering = models.CharField(max_length=255, blank=True)
     other_activities = models.CharField(max_length=255, blank=True)
@@ -85,10 +83,15 @@ class Player(models.Model):
     last_league = models.CharField(max_length=225, blank=True)
     conflict_description = models.TextField(blank=True)
     last_team_coach = models.CharField(max_length=100, blank=True)
+    parent_name = models.CharField(max_length=100, blank=True)
+    parent_email = models.EmailField(blank=True)
+    parent_phone = models.CharField(max_length=20, blank=True)
+
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.division})"
-    
+        return self.get_full_name()
 
 class PerformanceEvaluation(models.Model):
     player = models.ForeignKey('Player', on_delete=models.CASCADE, related_name='evaluations')
