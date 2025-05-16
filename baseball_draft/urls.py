@@ -23,12 +23,21 @@ urlpatterns = [
     path('accounts/login/', auth_views.LoginView.as_view(template_name='league/login.html'), name='login'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('accounts/', RedirectView.as_view(url='/accounts/login/', permanent=False), name='accounts_home'),
-    path('', views.dashboard, name='dashboard'),
-    path('division/<int:division_id>/', views.dashboard, name='dashboard_with_division'),
+    
+    # Include league URLs
+    path('', include('league.urls')),
+    
+    # REST API
+    path('api/', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    
+    # API Endpoints for Box Score Uploads
+    path('upload-boxscore/', api_views.upload_box_score, name='upload_box_score'),
+    path('verify-stats/<int:stat_id>/', api_views.verify_player_stats, name='verify_player_stats'),
+]
+
+urlpatterns += [
     path('pick/<int:player_id>/<int:division_id>/', views.make_pick, name='make_pick'),
-    path('add-player/', views.add_player, name='add_player'),
-    path('add-player/<int:division_id>/', views.add_player, name='add_player_with_division'),
-    path('profile/', views.player_profile, name='player_profile'),
     path('signup/', views.player_signup, name='player_signup'),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
     path('comment/<int:player_id>/<int:division_id>/', views.coach_comment, name='coach_comment'),
@@ -36,24 +45,8 @@ urlpatterns = [
     path('draft/<int:division_id>/', views.public_draft, name='public_draft_with_division'),
     path('toggle-draft/<int:division_id>/', views.toggle_draft_status, name='toggle_draft_status'),
     path('trade/<int:division_id>/', views.trade_players, name='trade_players'),
-    path('player/<int:player_id>/', views.player_detail, name='player_detail'),
-    path('import-players/', views.import_players, name='import_players'),  # New route
+    path('import-players/', views.import_players, name='import_players'),
     path('boxscore/<str:game_id>/', views.box_score_view, name='box_score'),
-
-    # REST API
-    path('api/', include(router.urls)), # from router above
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    
-    # API Endpoints for Box Score Uploads
-    path('upload-boxscore/', api_views.upload_box_score, name='upload_box_score'),
-    path('verify-stats/<int:stat_id>/', api_views.verify_player_stats, name='verify_player_stats'),
-    
-    # Include league URLs
-    path('', include('league.urls')),
-]
-
-urlpatterns += [
-    path("dashboard/", views.player_dashboard, name="player_dashboard"),
     path('coach/dashboard/', views.coach_dashboard, name='coach_dashboard'),
     path('coach/team/<int:team_id>/add-log/', views.add_team_log, name='add_team_log'),
     path("coach/team/<int:team_id>/logs/", views.team_logs_view, name="team_logs"),
@@ -67,7 +60,6 @@ urlpatterns += [
     path("player/logs/", views.player_logs_view, name="player_logs"),
     path('players/<int:player_id>/evaluations/', views.player_evaluations, name='player_evaluations'),
     path('players/<int:player_id>/evaluations/<int:evaluation_id>/', views.get_evaluation_detail, name='evaluation_detail'),
-    path("player/teams/", views.player_teams_view, name="player_teams"),
     path('join-team/', request_join_team, name='request_join_team'),
     path('coach/join-requests/', review_join_requests, name='review_join_requests'),
     path('coach/join-requests/<int:request_id>/approve/', approve_join_request, name='approve_join_request'),
